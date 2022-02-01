@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "YgoCardGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "compose -h"
+    }
+  }
+}
