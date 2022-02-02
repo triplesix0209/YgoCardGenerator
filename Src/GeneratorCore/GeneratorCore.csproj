@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="9.0.0" />
     <PackageReference Include="TripleSix.Core" Version="5.0.9" />
   </ItemGroup>
 

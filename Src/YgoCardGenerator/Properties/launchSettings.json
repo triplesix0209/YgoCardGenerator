@@ -2,7 +2,7 @@
   "profiles": {
     "YgoCardGenerator": {
       "commandName": "Project",
-      "commandLineArgs": "compose -h"
+      "commandLineArgs": "compose \"C:\\Users\\tripl\\Desktop\\output.png\""
     }
   }
 }

@@ -18,12 +18,10 @@ namespace YgoCardGenerator.Commands
         };
 
         private readonly string _flagBeginKey = "-";
-        private readonly IContainer _container;
         private readonly string[] _args;
 
-        protected AppCommand(IContainer container, string[] args)
+        protected AppCommand(string[] args)
         {
-            _container = container;
             _args = args.IsNullOrEmpty()
                 ? new string[0]
                 : args.Where(x => x.IsNotNullOrWhiteSpace()).ToArray();
@@ -65,7 +63,7 @@ namespace YgoCardGenerator.Commands
             if (commandType is null)
                 throw new ArgumentException($"'{commandCode}' is not supported.");
 
-            var command = Activator.CreateInstance(commandType, new object[] { container, args }) as AppCommand;
+            var command = container.Resolve(commandType, new NamedParameter("args", args)) as AppCommand;
             if (command.GetArg("-h") is not null)
                 command.Help();
             else
@@ -91,7 +89,7 @@ namespace YgoCardGenerator.Commands
                 .Where(x => x.IsSubclassOf(typeof(AppCommand)));
             foreach (var commandType in commands)
             {
-                var command = Activator.CreateInstance(commandType, new[] { container, null }) as AppCommand;
+                var command = container.Resolve(commandType) as AppCommand;
                 Console.WriteLine($"  {command.Code.PadRight(10)} {command.Description}");
             }
         }
@@ -151,15 +149,10 @@ namespace YgoCardGenerator.Commands
                     {
                         Console.WriteLine($"  {"[" + string.Join("|", option.Flags.Select(x => _flagBeginKey + x)) + "]",-20} {option.Description}");
                         if (option.DefaultValue.IsNotNullOrWhiteSpace())
-                            Console.WriteLine($"{"default: " + option.DefaultValue,39}");
+                            Console.WriteLine($"{"default: ",32} {option.DefaultValue}");
                     }
                 }
             }
-        }
-
-        protected TService Resolve<TService>()
-        {
-            return _container.Resolve<TService>();
         }
 
         protected string GetOptionValue(CommandOption option)
@@ -178,6 +171,11 @@ namespace YgoCardGenerator.Commands
             }
 
             return option.DefaultValue;
+        }
+
+        protected string GetOptionValue(int optionIndex)
+        {
+            return GetOptionValue(Options[optionIndex]);
         }
 
         private string GetArg(int index)
