@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using GeneratorCore.Dto;
 using GeneratorCore.Services;
 using YgoCardGenerator.Types;
 
@@ -27,7 +28,8 @@ namespace YgoCardGenerator.Commands
             await base.Do();
 
             var fileName = GetOptionValue(0);
-            await CardComposeService.Write(fileName);
+            var input = new CardComposeDataDto { Type = GeneratorCore.Enums.CardTypes.Spell };
+            await CardComposeService.Write(input, fileName);
         }
     }
 }

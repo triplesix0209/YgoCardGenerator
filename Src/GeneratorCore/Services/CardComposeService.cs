@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Reflection;
+using System.Threading.Tasks;
+using GeneratorCore.Dto;
 using ImageMagick;
 using TripleSix.Core.Services;
 
@@ -7,32 +9,51 @@ namespace GeneratorCore.Services
     public class CardComposeService : BaseService,
         ICardComposeService
     {
-        private const int _cardWidth = 694;
-        private const int _cardHeigth = 1013;
+        private readonly Assembly _assembly = Assembly.GetExecutingAssembly();
 
-        public async Task Write(string fileName)
+        public async Task Write(CardComposeDataDto input, string fileName)
         {
-            using (var card = GenerateCardBase())
+            using (var card = GenerateCardBase(input))
             {
-                new Drawables()
-                  .FontPointSize(72)
-                  .Font("Comic Sans")
-                  .StrokeColor(new MagickColor("yellow"))
-                  .FillColor(MagickColors.Orange)
-                  .TextAlignment(TextAlignment.Center)
-                  .Text(256, 64, "Magick.NET")
-                  .StrokeColor(new MagickColor(0, Quantum.Max, 0))
-                  .FillColor(MagickColors.SaddleBrown)
-                  .Ellipse(256, 96, 192, 8, 0, 360)
-                  .Draw(card);
-
+                DrawCardType(card, input);
+                DrawCardFrame(card, input);
                 await card.WriteAsync(fileName);
             }
         }
 
-        protected MagickImage GenerateCardBase()
+        #region [workflow]
+
+        protected MagickImage GenerateCardBase(CardComposeDataDto input)
         {
-            return new MagickImage(MagickColors.Transparent, _cardWidth, _cardHeigth);
+            return new MagickImage(MagickColors.Transparent, input.Width, input.Height);
         }
+
+        protected void DrawCardType(MagickImage card, CardComposeDataDto input)
+        {
+            DrawResource(card, input, "card_type", input.Type.ToString("D"));
+        }
+
+        protected void DrawCardFrame(MagickImage card, CardComposeDataDto input)
+        {
+            DrawResource(card, input, input.Rarity, "card-frame");
+        }
+
+        #endregion
+
+        #region [helper]
+
+        protected void DrawResource(MagickImage card, CardComposeDataDto input, params string[] names)
+        {
+            var resourceName = string.Join(".", names);
+            resourceName = string.Join(".", "GeneratorCore.Resources", input.Template, resourceName, "png");
+
+            using (var stream = _assembly.GetManifestResourceStream(resourceName))
+            using (var layer = new MagickImage(stream))
+            {
+                card.Composite(layer, Gravity.Center, CompositeOperator.Over);
+            }
+        }
+
+        #endregion
     }
 }
