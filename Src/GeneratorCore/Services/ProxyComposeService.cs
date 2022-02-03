@@ -180,6 +180,8 @@ namespace GeneratorCore.Services
                 types.AddRange(secondaryTypes.Select(x => EnumHelper.GetDescription(x)));
             if (input.IsMonsterType(MonsterTypes.Effect))
                 types.Add(EnumHelper.GetDescription(MonsterTypes.Effect));
+            else if (input.IsMonsterType(MonsterTypes.Normal))
+                types.Add(EnumHelper.GetDescription(MonsterTypes.Normal));
 
             var text = "["
                 + string.Join("/", races)
