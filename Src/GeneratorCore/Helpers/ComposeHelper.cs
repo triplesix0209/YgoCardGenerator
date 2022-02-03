@@ -15,10 +15,14 @@ namespace GeneratorCore.Helpers
 
         public static void Init()
         {
-            var fonts = new[] {
+            var fonts = new[]
+            {
                 "Yu-Gi-Oh! Matrix Regular Small Caps 1.ttf",
                 "Yu-Gi-Oh! Matrix Book.ttf",
+                "Eurostile Candy W01 Semibold.ttf",
+                "Matrix Bold Small Caps.ttf",
             };
+
             foreach (var font in fonts)
             {
                 using (var stream = _assembly.GetManifestResourceStream($"GeneratorCore.Resources.font.{font}"))

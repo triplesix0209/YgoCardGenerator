@@ -6,11 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Resources\font\Yu-Gi-Oh! Matrix Book.ttf" />
-    <None Remove="Resources\proxy\card_type\2.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Resources\font\**" />
     <EmbeddedResource Include="Resources\proxy\**" />
   </ItemGroup>

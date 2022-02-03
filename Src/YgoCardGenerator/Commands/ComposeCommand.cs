@@ -31,11 +31,14 @@ namespace YgoCardGenerator.Commands
             var output = GetOptionValue(0);
             var input = new ComposeDataDto
             {
-                Name = "Monster Reborn",
-                CardType = GeneratorCore.Enums.CardTypes.Spell,
-                SpellType = GeneratorCore.Enums.SpellTypes.Normal,
-                Effect = "Target 1 monster in either GY; Special Summon it.",
+                Name = "Gundog",
+                CardType = GeneratorCore.Enums.CardTypes.Normal,
+                Attribute = GeneratorCore.Enums.MonsterAttributes.Light,
                 ArtworkPath = @"G:\My Drive\Personal\avatar.jpg",
+                Level = 4,
+                ATK = 1500,
+                DEF = 1000,
+                //Effect = "Target 1 monster in either GY; Special Summon it.",
             };
 
             await Container.Resolve<ProxyComposeService>()

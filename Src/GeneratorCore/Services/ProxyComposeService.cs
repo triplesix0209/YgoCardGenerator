@@ -34,7 +34,9 @@ namespace GeneratorCore.Services
                     }
                     else
                     {
-
+                        DrawMonsterAttribute(context, input);
+                        DrawMonsterLevelRankRating(context, input);
+                        DrawMonsterAtkDef(context, input);
                     }
                 });
 
@@ -50,7 +52,7 @@ namespace GeneratorCore.Services
 
         protected void DrawCardFrame(IImageProcessingContext context, ComposeDataDto input)
         {
-            var cardFrame = GetResource(input.Rarity.ToString().ToKebabCase(), "card-frame");
+            var cardFrame = GetResource("card_frame", input.Rarity.ToString().ToKebabCase(), "card-frame");
             context.DrawResource(cardFrame);
         }
 
@@ -64,6 +66,8 @@ namespace GeneratorCore.Services
             {
                 case CardTypes.Spell:
                 case CardTypes.Trap:
+                case CardTypes.Xyz:
+                case CardTypes.Link:
                     color = Color.White;
                     break;
 
@@ -119,6 +123,86 @@ namespace GeneratorCore.Services
             var color = Color.Black;
 
             context.DrawText(input.Effect, target, fontFamily, color, maxFontSize: 20);
+        }
+
+        protected void DrawMonsterAttribute(IImageProcessingContext context, ComposeDataDto input)
+        {
+            if (input.Attribute == MonsterAttributes.None) return;
+
+            var attribute = GetResource("attribute", input.Attribute.ToString("D"));
+            context.DrawResource(attribute);
+        }
+
+        protected void DrawMonsterLevelRankRating(IImageProcessingContext context, ComposeDataDto input)
+        {
+            if (input.CardType == CardTypes.Link)
+            {
+                var linkLabel = GetResource("link_label");
+                context.DrawResource(linkLabel);
+
+                var target = new RectangleF(614, 925, 27, 25);
+                var font = "EurostileCandyW01-Semibold";
+                var color = Color.Black;
+
+                context.DrawText(
+                    input.Level.ToString(),
+                    target,
+                    font,
+                    color,
+                    wordwrap: false,
+                    anchorPoint: AnchorPositionMode.Center,
+                    horizontalAlignment: HorizontalAlignment.Center,
+                    verticalAlignment: VerticalAlignment.Center,
+                    horizontalPadding: 0,
+                    verticalPadding: 0);
+                return;
+            }
+
+            if (input.Level == 0) return;
+
+            if (input.CardType == CardTypes.Xyz)
+            {
+                var rank = GetResource("level_rank", $"rnk{input.Level:D}");
+                context.DrawResource(rank);
+                return;
+            }
+
+            var level = GetResource("level_rank", $"lvl{input.Level:D}");
+            context.DrawResource(level);
+        }
+
+        protected void DrawMonsterAtkDef(IImageProcessingContext context, ComposeDataDto input)
+        {
+            var level = GetResource("atkdef_line");
+            context.DrawResource(level);
+
+            var atk = "ATK/" + (input.ATK.HasValue ? input.ATK : "?");
+            var def = "DEF/" + (input.DEF.HasValue ? input.DEF : "?");
+            var targetAtk = new RectangleF(371, 927, 127, 30);
+            var targetDef = new RectangleF(515, 927, 127, 30);
+            var font = "MatrixBoldSmallCaps";
+            var color = Color.Black;
+
+            context.DrawText(
+                atk,
+                targetAtk,
+                font,
+                color,
+                wordwrap: false,
+                horizontalPadding: 0,
+                verticalPadding: 0);
+
+            if (input.CardType != CardTypes.Link)
+            {
+                context.DrawText(
+                def,
+                targetDef,
+                font,
+                color,
+                wordwrap: false,
+                horizontalPadding: 0,
+                verticalPadding: 0);
+            }
         }
     }
 }
