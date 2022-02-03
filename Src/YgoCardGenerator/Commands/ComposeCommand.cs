@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Autofac;
 using GeneratorCore.Dto;
 using GeneratorCore.Services;
 using YgoCardGenerator.Types;
@@ -12,7 +13,7 @@ namespace YgoCardGenerator.Commands
         {
         }
 
-        public ICardComposeService CardComposeService { get; set; }
+        public IComponentContext Container { get; set; }
 
         public override string Description => "Generate card images";
 
@@ -27,9 +28,18 @@ namespace YgoCardGenerator.Commands
         {
             await base.Do();
 
-            var fileName = GetOptionValue(0);
-            var input = new CardComposeDataDto { Type = GeneratorCore.Enums.CardTypes.Spell };
-            await CardComposeService.Write(input, fileName);
+            var output = GetOptionValue(0);
+            var input = new ComposeDataDto
+            {
+                Name = "Monster Reborn",
+                CardType = GeneratorCore.Enums.CardTypes.Spell,
+                SpellType = GeneratorCore.Enums.SpellTypes.Normal,
+                Effect = "Target 1 monster in either GY; Special Summon it.",
+                ArtworkPath = @"G:\My Drive\Personal\avatar.jpg",
+            };
+
+            await Container.Resolve<ProxyComposeService>()
+                .Write(input, output);
         }
     }
 }

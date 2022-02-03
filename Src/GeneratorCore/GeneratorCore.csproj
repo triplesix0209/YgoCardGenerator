@@ -6,16 +6,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\font\Yu-Gi-Oh! Matrix Book.ttf" />
     <None Remove="Resources\proxy\card_type\2.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Resources\font\**" />
     <EmbeddedResource Include="Resources\proxy\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="9.0.0" />
-    <PackageReference Include="TripleSix.Core" Version="5.0.9" />
+    <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta15" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
+    <PackageReference Include="TripleSix.Core" Version="5.0.12" />
   </ItemGroup>
 
 </Project>

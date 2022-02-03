@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
-using ImageMagick;
+using GeneratorCore.Helpers;
 using Microsoft.Extensions.Configuration;
 using YgoCardGenerator.Commands;
 
@@ -17,7 +17,7 @@ namespace YgoCardGenerator
             containerBuilder.RegisterModule(new AutofacModule(config));
             var container = containerBuilder.Build();
 
-            MagickNET.Initialize();
+            ComposeHelper.Init();
             await AppCommand.Do(container, args);
         }
     }
