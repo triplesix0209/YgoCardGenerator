@@ -3,11 +3,12 @@
     public enum SpellTypes
     {
         Normal = 0,
-        Ritual = 128,
-        QuickPlay = 65536,
-        Continuous = 131072,
-        Equip = 262144,
-        Field = 524288,
-        Counter = 1048576,
+        Ritual = 0x80,
+        QuickPlay = 0x10000,
+        Continuous = 0x20000,
+        Equip = 0x40000,
+        Field = 0x80000,
+        Counter = 0x100000,
+        Link = 0x4000000,
     }
 }

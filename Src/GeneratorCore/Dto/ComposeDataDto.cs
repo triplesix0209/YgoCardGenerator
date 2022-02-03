@@ -1,7 +1,8 @@
-﻿using GeneratorCore.Enums;
-using System.Linq;
+﻿using System.Linq;
+using GeneratorCore.Enums;
 using TripleSix.Core.Attributes;
 using TripleSix.Core.Dto;
+using TripleSix.Core.Extensions;
 
 namespace GeneratorCore.Dto
 {
@@ -22,10 +23,15 @@ namespace GeneratorCore.Dto
         public string Name { get; set; }
 
         [EnumValidate]
-        public MonsterAttributes Attribute { get; set; }
-
-        [EnumValidate]
         public SpellTypes SpellType { get; set; }
+
+        public MonsterTypes[] MonsterType { get; set; }
+
+        public MonsterAttributes[] Attribute { get; set; }
+
+        public MonsterRaces[] Race { get; set; }
+
+        public string Flavor { get; set; }
 
         public string Effect { get; set; }
 
@@ -42,11 +48,36 @@ namespace GeneratorCore.Dto
 
         public bool IsSpellTrap => CardType == CardTypes.Spell || CardType == CardTypes.Trap;
 
-        public bool IsMonster => new[]
-        {
-            CardTypes.Normal, CardTypes.Effect, CardTypes.Ritual,
-            CardTypes.Fusion, CardTypes.Synchro, CardTypes.Xyz,
-            CardTypes.Link,
-        }.Contains(CardType);
+        public bool IsMonster => CardType == CardTypes.Monster;
+
+        public MonsterTypes[] MonsterPrimaryTypes => MonsterType
+            .Where(x => new[]
+            {
+                MonsterTypes.Normal,
+                MonsterTypes.Effect,
+                MonsterTypes.Ritual,
+                MonsterTypes.Fusion,
+                MonsterTypes.Synchro,
+                MonsterTypes.Xyz,
+                MonsterTypes.Pendulum,
+                MonsterTypes.Link,
+            }.Contains(x))
+            .ToArray();
+
+        public MonsterTypes[] MonsterSecondaryTypes => MonsterType
+            .Where(x => new[]
+            {
+                MonsterTypes.Normal,
+                MonsterTypes.Effect,
+                MonsterTypes.Ritual,
+                MonsterTypes.Fusion,
+                MonsterTypes.Synchro,
+                MonsterTypes.Xyz,
+                MonsterTypes.Pendulum,
+                MonsterTypes.Link,
+            }.Contains(x) == false)
+            .ToArray();
+
+        public bool IsMonsterType(params MonsterTypes[] types) => IsMonster && MonsterType.ContainAny(types);
     }
 }

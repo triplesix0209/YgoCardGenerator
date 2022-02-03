@@ -32,13 +32,15 @@ namespace YgoCardGenerator.Commands
             var input = new ComposeDataDto
             {
                 Name = "Gundog",
-                CardType = GeneratorCore.Enums.CardTypes.Normal,
-                Attribute = GeneratorCore.Enums.MonsterAttributes.Light,
+                CardType = GeneratorCore.Enums.CardTypes.Monster,
+                MonsterType = new[] { GeneratorCore.Enums.MonsterTypes.Normal },
+                Attribute = new[] { GeneratorCore.Enums.MonsterAttributes.Light },
+                Race = new[] { GeneratorCore.Enums.MonsterRaces.DivineBeast },
                 ArtworkPath = @"G:\My Drive\Personal\avatar.jpg",
                 Level = 4,
                 ATK = 1500,
-                DEF = 1000,
-                //Effect = "Target 1 monster in either GY; Special Summon it.",
+                DEF = 500,
+                Effect = "During damage calculation, if your opponent's monster attacks (Quick Effect): You can discard this card; you take no battle damage from that battle.",
             };
 
             await Container.Resolve<ProxyComposeService>()

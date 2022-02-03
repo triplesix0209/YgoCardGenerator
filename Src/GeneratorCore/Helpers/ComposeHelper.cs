@@ -17,6 +17,8 @@ namespace GeneratorCore.Helpers
         {
             var fonts = new[]
             {
+                "Yu-Gi-Oh! ITC Stone Serif LT Italic.ttf",
+                "Yu-Gi-Oh! ITC Stone Serif Small Caps Bold.ttf",
                 "Yu-Gi-Oh! Matrix Regular Small Caps 1.ttf",
                 "Yu-Gi-Oh! Matrix Book.ttf",
                 "Eurostile Candy W01 Semibold.ttf",
@@ -49,13 +51,13 @@ namespace GeneratorCore.Helpers
             string fontFamily,
             Color color,
             FontStyle style = FontStyle.Regular,
-            bool wordwrap = true,
             float maxFontSize = 100,
             AnchorPositionMode anchorPoint = AnchorPositionMode.TopLeft,
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment verticalAlignment = VerticalAlignment.Top,
             float horizontalPadding = 10,
-            float verticalPadding = 10)
+            float verticalPadding = 10,
+            bool wordwrap = true)
         {
             #region [prepare]
 
@@ -150,6 +152,30 @@ namespace GeneratorCore.Helpers
             return context;
 
             #endregion
+        }
+
+        public static IImageProcessingContext DrawText(
+            this IImageProcessingContext context,
+            string text,
+            PointF location,
+            string fontFamily,
+            float fontSize,
+            Color color,
+            FontStyle style = FontStyle.Regular,
+            HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
+            VerticalAlignment verticalAlignment = VerticalAlignment.Top)
+        {
+            var font = _fontCollection.CreateFont(fontFamily, fontSize, style);
+            var options = new DrawingOptions
+            {
+                TextOptions = new TextOptions
+                {
+                    HorizontalAlignment = horizontalAlignment,
+                    VerticalAlignment = verticalAlignment,
+                },
+            };
+
+            return context.DrawText(options, text, font, color, location);
         }
 
         public static IImageProcessingContext DrawRectangle(this IImageProcessingContext context, RectangleF rectangle, Color color, float thickness = 1)
