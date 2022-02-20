@@ -31,14 +31,30 @@ namespace GeneratorCore.Dto
 
         public MonsterRaces[] Race { get; set; }
 
+        public LinkArrows[] LinkArrow { get; set; }
+
         public string Flavor { get; set; }
 
         public string Effect { get; set; }
 
+        public string PendulumEffect { get; set; }
+
         public string ArtworkPath { get; set; }
 
         [RangeValidate(0, 13)]
-        public int Level { get; set; }
+        public int? Level { get; set; }
+
+        [RangeValidate(0, 13)]
+        public int? Rank { get; set; }
+
+        [RangeValidate(0, 14)]
+        public int? LeftScale { get; set; }
+
+        [RangeValidate(0, 14)]
+        public int? RightScale { get; set; }
+
+        [RangeValidate(0, 8)]
+        public int? LinkRating { get; set; }
 
         [MinValidate(0)]
         public int? ATK { get; set; }
@@ -46,9 +62,13 @@ namespace GeneratorCore.Dto
         [MinValidate(0)]
         public int? DEF { get; set; }
 
+        public PendulumSizes PendulumSize { get; set; } = PendulumSizes.Auto;
+
         public bool IsSpellTrap => CardType == CardTypes.Spell || CardType == CardTypes.Trap;
 
         public bool IsMonster => CardType == CardTypes.Monster;
+
+        public bool IsLink => IsSpellType(SpellTypes.Link) || IsMonsterType(MonsterTypes.Link);
 
         public MonsterTypes[] MonsterPrimaryTypes => MonsterType
             ?.Where(x => new[]
@@ -78,6 +98,10 @@ namespace GeneratorCore.Dto
             }.Contains(x) == false)
             .ToArray();
 
+        public bool IsSpellType(SpellTypes type) => IsSpellTrap && SpellType == type;
+
         public bool IsMonsterType(params MonsterTypes[] types) => IsMonster && MonsterType.ContainAny(types);
+
+        public bool HasLinkArrow(LinkArrows arrows) => IsLink && LinkArrow.ContainAny(arrows);
     }
 }

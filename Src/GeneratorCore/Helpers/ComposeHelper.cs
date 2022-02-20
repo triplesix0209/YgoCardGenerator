@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using ImageMagick;
 using ImageMagick.Formats;
 
@@ -15,26 +16,30 @@ namespace GeneratorCore.Helpers
             return $"Resources/font/{fontFileName}.ttf";
         }
 
-        public static MagickImage DrawResource(this MagickImage context, string resourceName)
+        public static async Task DrawResource(this MagickImage context, string resourceName)
         {
             using (var resourceStream = _assembly.GetManifestResourceStream(resourceName))
-            using (var resourceImage = new MagickImage(resourceStream))
-                context.Composite(resourceImage, Gravity.Center, CompositeOperator.Over);
-
-            return context;
+            using (var resource = new MagickImage())
+            {
+                await resource.ReadAsync(resourceStream);
+                context.Composite(resource, Gravity.Center, CompositeOperator.Over);
+            }
         }
 
-        public static MagickImage DrawTextLine(
+        public static Task DrawTextLine(
             this MagickImage context,
             string text,
-            PointD location,
+            Point location,
             string fontFamily,
-            IMagickColor<ushort> color,
             double fontSize,
+            IMagickColor<ushort> color = null,
+            int? width = null,
             int? maxWidth = null,
             Gravity gravity = Gravity.Northwest,
             FontStyleType fontStyle = FontStyleType.Normal)
         {
+            if (color is null) color = MagickColors.Black;
+
             var settings = new MagickReadSettings()
             {
                 Font = GetFont(fontFamily),
@@ -48,6 +53,16 @@ namespace GeneratorCore.Helpers
 
             using (var label = new MagickImage($"label:{text}", settings))
             {
+                if (width.HasValue)
+                {
+                    label.Resize(new MagickGeometry
+                    {
+                        Width = width.Value,
+                        Height = (int)fontSize,
+                        IgnoreAspectRatio = true,
+                    });
+                }
+
                 if (maxWidth.HasValue && label.FontTypeMetrics(text).TextWidth > maxWidth)
                 {
                     label.Resize(new MagickGeometry
@@ -58,23 +73,26 @@ namespace GeneratorCore.Helpers
                     });
                 }
 
-                context.Composite(label, location, CompositeOperator.Over);
+                context.Composite(label, location.X, location.Y, CompositeOperator.Over);
             }
 
-            return context;
+            return Task.CompletedTask;
         }
 
-        public static MagickImage DrawTextArea(
+        public static Task DrawTextAreaAsync(
             this MagickImage context,
             string text,
             Rectangle targetArea,
             string fontFamily,
-            IMagickColor<ushort> color,
-            double? minFontSize = null,
-            double? maxFontSize = null,
-            Gravity gravity = Gravity.West,
-            FontStyleType fontStyle = FontStyleType.Normal)
+            IMagickColor<ushort> color = null,
+            double? minFontSize = 10,
+            double? maxFontSize = 20,
+            Gravity gravity = Gravity.Northwest,
+            FontStyleType fontStyle = FontStyleType.Normal,
+            double wordSpacing = 0)
         {
+            if (color is null) color = MagickColors.Black;
+
             var settings = new MagickReadSettings()
             {
                 Defines = new CaptionReadDefines() { StartFontPointsize = minFontSize, MaxFontPointsize = maxFontSize },
@@ -86,18 +104,20 @@ namespace GeneratorCore.Helpers
                 BackgroundColor = MagickColors.None,
                 TextGravity = gravity,
                 FontStyle = fontStyle,
+                TextInterwordSpacing = wordSpacing,
             };
 
             using (var caption = new MagickImage($"caption:{text}", settings))
+            {
                 context.Composite(caption, targetArea.X, targetArea.Y, CompositeOperator.Over);
-
-            return context;
+                return Task.CompletedTask;
+            }
         }
 
-        public static MagickImage DrawBorder(this MagickImage context, IMagickColor<ushort> color)
+        public static MagickImage DrawDebugBorder(this MagickImage context)
         {
             new Drawables()
-                .StrokeColor(color)
+                .StrokeColor(MagickColors.Red)
                 .Line(0, 0, context.Width - 1, 0)
                 .Line(context.Width - 1, 0, context.Width - 1, context.Height - 1)
                 .Line(context.Width - 1, context.Height - 1, 0, context.Height - 1)

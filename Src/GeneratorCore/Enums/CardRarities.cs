@@ -2,7 +2,7 @@
 {
     public enum CardRarities
     {
-        Common,
-        Gold,
+        Common = 0,
+        Gold = 1,
     }
 }

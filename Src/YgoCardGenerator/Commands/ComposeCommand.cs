@@ -32,16 +32,20 @@ namespace YgoCardGenerator.Commands
             var output = GetOptionValue(0);
             var input = new ComposeDataDto
             {
-                Name = "Chaos Emperor",
+                //Rarity = CardRarities.Gold,
+                Name = "Supreme King Dragon Odd-Eyes",
                 CardType = CardTypes.Monster,
-                MonsterType = new[] { MonsterTypes.Effect, },
-                Attribute = new[] { MonsterAttributes.Light },
-                Race = new[] { MonsterRaces.WingedBeast },
-                ArtworkPath = @"G:\My Drive\Personal\avatar.jpg",
-                Level = 4,
-                ATK = 1500,
-                DEF = 500,
-                Effect = "During damage calculation, if your opponent's monster attacks (Quick Effect): You can discard this card; you take no battle damage from that battle.",
+                MonsterType = new[] { MonsterTypes.Effect, MonsterTypes.Pendulum },
+                Attribute = new[] { MonsterAttributes.Dark },
+                Race = new[] { MonsterRaces.Dragon },
+                ArtworkPath = @"D:\Temp\Supreme King Dragon Odd-Eyes.png",
+                Level = 8,
+                LeftScale = 4,
+                RightScale = 4,
+                ATK = 2500,
+                DEF = 2000,
+                PendulumEffect = "You can Tribute 1 \"Supreme King Dragon\" monster; destroy this card, and if you do, add 1 Pendulum Monster with 1500 or less ATK from your Deck to your hand.",
+                Effect = "You can Tribute 2 \"Supreme King Dragon\" monsters; Special Summon this card from your hand. If your Pendulum Monster battles an opponent's monster, any battle damage it inflicts to your opponent is doubled. During the Battle Phase (Quick Effect): You can Tribute this card; Special Summon up to 2 face-up \"Supreme King Dragon\" and/or \"Supreme King Gate\" Pendulum Monsters from your Extra Deck in Defense Position, except \"Supreme King Dragon Odd - Eyes\".",
             };
 
             await Container.Resolve<ProxyComposeService>()

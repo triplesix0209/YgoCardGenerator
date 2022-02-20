@@ -2,6 +2,6 @@
 {
     public enum CardTemplates
     {
-        Proxy,
+        Proxy = 0,
     }
 }
