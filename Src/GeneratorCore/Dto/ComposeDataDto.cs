@@ -73,6 +73,7 @@ namespace GeneratorCore.Dto
         public MonsterTypes[] MonsterPrimaryTypes => MonsterType
             ?.Where(x => new[]
             {
+                MonsterTypes.Token,
                 MonsterTypes.Normal,
                 MonsterTypes.Effect,
                 MonsterTypes.Ritual,
@@ -85,17 +86,7 @@ namespace GeneratorCore.Dto
             .ToArray();
 
         public MonsterTypes[] MonsterSecondaryTypes => MonsterType
-            ?.Where(x => new[]
-            {
-                MonsterTypes.Normal,
-                MonsterTypes.Effect,
-                MonsterTypes.Ritual,
-                MonsterTypes.Fusion,
-                MonsterTypes.Synchro,
-                MonsterTypes.Xyz,
-                MonsterTypes.Pendulum,
-                MonsterTypes.Link,
-            }.Contains(x) == false)
+            ?.Where(x => !MonsterPrimaryTypes.Contains(x))
             .ToArray();
 
         public bool IsSpellType(SpellTypes type) => IsSpellTrap && SpellType == type;

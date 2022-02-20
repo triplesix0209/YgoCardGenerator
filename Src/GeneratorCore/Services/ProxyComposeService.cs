@@ -55,7 +55,7 @@ namespace GeneratorCore.Services
         {
             await card.DrawResource(input.IsSpellTrap
                 ? GetResource("card_type", input.CardType.ToString("D"))
-                : GetResource("card_type", input.MonsterPrimaryTypes.First(x => x != MonsterTypes.Pendulum).ToString("D")));
+                : GetResource("card_type", input.MonsterPrimaryTypes.First().ToString("D")));
 
             if (input.IsMonsterType(MonsterTypes.Pendulum))
                 await card.DrawResource(GetResource("card_type", MonsterTypes.Pendulum.ToString("D")));
@@ -163,7 +163,7 @@ namespace GeneratorCore.Services
         {
             if (input.Effect.IsNullOrWhiteSpace()) return;
 
-            var target = new Rectangle(55, 765, 580, 180);
+            var target = new Rectangle(55, 765, 580, 185);
             var font = "Yu-Gi-Oh! Matrix Book";
 
             await card.DrawTextAreaAsync(input.Effect, target, font);
@@ -247,17 +247,21 @@ namespace GeneratorCore.Services
             var races = input.Race.Select(x => EnumHelper.GetDescription(x));
             var types = new List<string>();
             var primaryTypes = input.MonsterPrimaryTypes.Where(x => new[] { MonsterTypes.Normal, MonsterTypes.Effect }.Contains(x) == false);
-            var secondaryTypes = input.MonsterSecondaryTypes.Where(x => new[] { MonsterTypes.Nomi }.Contains(x) == false);
+            var secondaryTypes = input.MonsterSecondaryTypes.Where(x => new[] { MonsterTypes.Pendulum, MonsterTypes.Nomi }.Contains(x) == false);
+
             if (primaryTypes.Any())
                 types.AddRange(primaryTypes.Select(x => EnumHelper.GetDescription(x)));
             if (input.IsMonsterType(MonsterTypes.Pendulum))
                 types.Add(EnumHelper.GetDescription(MonsterTypes.Pendulum));
             if (secondaryTypes.Any())
                 types.AddRange(secondaryTypes.Select(x => EnumHelper.GetDescription(x)));
-            if (input.IsMonsterType(MonsterTypes.Effect))
-                types.Add(EnumHelper.GetDescription(MonsterTypes.Effect));
-            else if (input.IsMonsterType(MonsterTypes.Normal))
-                types.Add(EnumHelper.GetDescription(MonsterTypes.Normal));
+            if (!input.IsMonsterType(MonsterTypes.Token))
+            {
+                if (input.IsMonsterType(MonsterTypes.Effect))
+                    types.Add(EnumHelper.GetDescription(MonsterTypes.Effect));
+                else if (input.IsMonsterType(MonsterTypes.Normal))
+                    types.Add(EnumHelper.GetDescription(MonsterTypes.Normal));
+            }
 
             var text = "["
                 + string.Join("/", races)
@@ -304,29 +308,6 @@ namespace GeneratorCore.Services
                         : "Yu-Gi-Oh! Matrix Book";
                 await card.DrawTextAreaAsync(cardText, target, font);
             }
-
-            //double lineCountEstimate;
-            //using (var caption = new MagickImage($"caption:{text}", settings))
-            //{
-            //    lineCountEstimate = caption.FontTypeMetrics(text).TextWidth / targetArea.Width;
-            //    if (lineCountEstimate < 4)
-            //    {
-            //        context.Composite(caption, targetArea.X, targetArea.Y, CompositeOperator.Over);
-            //        return Task.CompletedTask;
-            //    }
-            //}
-            //switch (lineCountEstimate)
-            //{
-            //    case >= 6:
-            //        settings.TextInterwordSpacing = 0;
-            //        break;
-            //    case >= 5:
-            //        settings.TextInterwordSpacing = 4;
-            //        break;
-            //    case >= 4:
-            //        settings.TextInterwordSpacing = 6;
-            //        break;
-            //}
         }
 
         protected async Task DrawMonsterAtkDef(MagickImage card, ComposeDataDto input)
