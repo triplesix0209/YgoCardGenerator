@@ -2,9 +2,8 @@
 using System.Threading.Tasks;
 using GeneratorCore.Dto;
 using GeneratorCore.Interfaces;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using TripleSix.Core.Extensions;
+using ImageMagick;
+using TripleSix.Core.Helpers;
 using TripleSix.Core.Services;
 
 namespace GeneratorCore.Services
@@ -25,9 +24,9 @@ namespace GeneratorCore.Services
             return Task.CompletedTask;
         }
 
-        protected virtual Image GenerateCard(ComposeDataDto input)
+        protected virtual MagickImage GenerateCard(ComposeDataDto input)
         {
-            return new Image<Rgba32>(input.Width, input.Height);
+            return new MagickImage(MagickColors.Transparent, input.Width, input.Height);
         }
 
         protected virtual string GetResource(params string[] names)

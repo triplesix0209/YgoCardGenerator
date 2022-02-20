@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using TripleSix.Core.Extensions;
+using TripleSix.Core.Helpers;
 
 namespace YgoCardGenerator.Types
 {

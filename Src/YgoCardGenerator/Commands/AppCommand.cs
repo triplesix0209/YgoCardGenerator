@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Autofac;
-using TripleSix.Core.Extensions;
+using TripleSix.Core.Helpers;
 using YgoCardGenerator.Types;
 
 namespace YgoCardGenerator.Commands

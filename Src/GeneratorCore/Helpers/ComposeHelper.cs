@@ -1,195 +1,110 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Drawing;
+using System.IO;
 using System.Reflection;
-using SixLabors.Fonts;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Processing;
+using ImageMagick;
+using ImageMagick.Formats;
 
 namespace GeneratorCore.Helpers
 {
     public static class ComposeHelper
     {
         private static readonly Assembly _assembly = Assembly.GetExecutingAssembly();
-        private static readonly FontCollection _fontCollection = new FontCollection();
 
-        public static void Init()
+        public static string GetFont(string fontFileName)
         {
-            var fonts = new[]
-            {
-                "Yu-Gi-Oh! ITC Stone Serif LT Italic.ttf",
-                "Yu-Gi-Oh! ITC Stone Serif Small Caps Bold.ttf",
-                "Yu-Gi-Oh! Matrix Regular Small Caps 1.ttf",
-                "Yu-Gi-Oh! Matrix Book.ttf",
-                "Eurostile Candy W01 Semibold.ttf",
-                "Matrix Bold Small Caps.ttf",
-            };
-
-            foreach (var font in fonts)
-            {
-                using (var stream = _assembly.GetManifestResourceStream($"GeneratorCore.Resources.font.{font}"))
-                    _fontCollection.Install(stream);
-            }
+            return $"Resources/font/{fontFileName}.ttf";
         }
 
-        public static Font CreateFont(string fontFamily, float size, FontStyle style = FontStyle.Regular)
-        {
-            return _fontCollection.CreateFont(fontFamily, size, style);
-        }
-
-        public static IImageProcessingContext DrawResource(this IImageProcessingContext context, string resourceName)
+        public static MagickImage DrawResource(this MagickImage context, string resourceName)
         {
             using (var resourceStream = _assembly.GetManifestResourceStream(resourceName))
-            using (var resourceImage = Image.Load(resourceStream))
-                return context.DrawImage(resourceImage, Point.Empty, 1);
+            using (var resourceImage = new MagickImage(resourceStream))
+                context.Composite(resourceImage, Gravity.Center, CompositeOperator.Over);
+
+            return context;
         }
 
-        public static IImageProcessingContext DrawText(
-            this IImageProcessingContext context,
+        public static MagickImage DrawTextLine(
+            this MagickImage context,
             string text,
-            RectangleF target,
+            PointD location,
             string fontFamily,
-            Color color,
-            FontStyle style = FontStyle.Regular,
-            float maxFontSize = 100,
-            AnchorPositionMode anchorPoint = AnchorPositionMode.TopLeft,
-            HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment verticalAlignment = VerticalAlignment.Top,
-            float horizontalPadding = 10,
-            float verticalPadding = 10,
-            bool wordwrap = true)
+            IMagickColor<ushort> color,
+            double fontSize,
+            int? maxWidth = null,
+            Gravity gravity = Gravity.Northwest,
+            FontStyleType fontStyle = FontStyleType.Normal)
         {
-            #region [prepare]
-
-            text = text.Replace("\n", " ");
-            var font = _fontCollection.CreateFont(fontFamily, maxFontSize, style);
-
-            var rec = new RectangleF(
-                target.X + horizontalPadding,
-                target.Y + verticalPadding,
-                target.Width - (horizontalPadding * 2),
-                target.Height - (verticalPadding * 2));
-
-            var options = new DrawingOptions
+            var settings = new MagickReadSettings()
             {
-                TextOptions = new TextOptions
-                {
-                    HorizontalAlignment = horizontalAlignment,
-                    VerticalAlignment = verticalAlignment,
-                },
+                Font = GetFont(fontFamily),
+                FontPointsize = fontSize,
+                FillColor = color,
+                StrokeColor = MagickColors.None,
+                BackgroundColor = MagickColors.None,
+                TextGravity = gravity,
+                FontStyle = fontStyle,
             };
 
-            var location = anchorPoint switch
+            using (var label = new MagickImage($"label:{text}", settings))
             {
-                AnchorPositionMode.Top => new PointF(rec.Left + (rec.Width / 2), rec.Top),
-                AnchorPositionMode.TopRight => new PointF(rec.Right, rec.Top),
-                AnchorPositionMode.Left => new PointF(rec.Left, rec.Top + (rec.Height / 2)),
-                AnchorPositionMode.Center => new PointF(rec.Left + (rec.Width / 2), rec.Top + (rec.Height / 2)),
-                AnchorPositionMode.Right => new PointF(rec.Right, rec.Top + (rec.Height / 2)),
-                AnchorPositionMode.BottomLeft => new PointF(rec.Left, rec.Bottom),
-                AnchorPositionMode.Bottom => new PointF(rec.Left + (rec.Width / 2), rec.Bottom),
-                AnchorPositionMode.BottomRight => new PointF(rec.Right, rec.Bottom),
-                _ => new PointF(rec.Left, rec.Top),
-            };
-
-            #endregion
-
-            #region [single line]
-
-            if (wordwrap == false)
-            {
-                var size = TextMeasurer.Measure(text, new RendererOptions(font));
-                var scalingFactor = Math.Min(rec.Width / size.Width, rec.Height / size.Height);
-                font = new Font(font, scalingFactor * font.Size);
-                return context.DrawText(options, text, font, color, location);
-            }
-
-            #endregion
-
-            #region [multi line]
-
-            var words = text.Split(" ");
-            var lines = new List<string>();
-            var line = string.Empty;
-            var lineHeight = 0f;
-
-            for (var i = 0; i < words.Length; i++)
-            {
-                var temp = line + " " + words[i];
-                var size = TextMeasurer.Measure(temp.Trim(), new RendererOptions(font));
-
-                if (size.Height > lineHeight)
-                    lineHeight = size.Height;
-
-                if (size.Width < rec.Width)
+                if (maxWidth.HasValue && label.FontTypeMetrics(text).TextWidth > maxWidth)
                 {
-                    line += " " + words[i];
-                }
-                else
-                {
-                    lines.Add(line.Trim());
-                    line = words[i];
-
-                    var currentHeight = Math.Ceiling(lines.Count * lineHeight);
-                    if (currentHeight > Math.Floor(rec.Height - lineHeight))
+                    label.Resize(new MagickGeometry
                     {
-                        lines = new List<string>();
-                        line = string.Empty;
-                        i = -1;
-                        lineHeight = 0;
-                        font = new Font(font, font.Size - 1);
-                    }
+                        Width = maxWidth.Value,
+                        Height = (int)fontSize,
+                        IgnoreAspectRatio = true,
+                    });
                 }
-            }
 
-            lines.Add(line.Trim());
-            foreach (var lineText in lines)
-            {
-                context.DrawText(options, lineText, font, color, location);
-                location.Y += lineHeight;
+                context.Composite(label, location, CompositeOperator.Over);
             }
 
             return context;
-
-            #endregion
         }
 
-        public static IImageProcessingContext DrawText(
-            this IImageProcessingContext context,
+        public static MagickImage DrawTextArea(
+            this MagickImage context,
             string text,
-            PointF location,
+            Rectangle targetArea,
             string fontFamily,
-            float fontSize,
-            Color color,
-            FontStyle style = FontStyle.Regular,
-            HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment verticalAlignment = VerticalAlignment.Top)
+            IMagickColor<ushort> color,
+            double? minFontSize = null,
+            double? maxFontSize = null,
+            Gravity gravity = Gravity.West,
+            FontStyleType fontStyle = FontStyleType.Normal)
         {
-            var font = _fontCollection.CreateFont(fontFamily, fontSize, style);
-            var options = new DrawingOptions
+            var settings = new MagickReadSettings()
             {
-                TextOptions = new TextOptions
-                {
-                    HorizontalAlignment = horizontalAlignment,
-                    VerticalAlignment = verticalAlignment,
-                },
+                Defines = new CaptionReadDefines() { StartFontPointsize = minFontSize, MaxFontPointsize = maxFontSize },
+                Font = GetFont(fontFamily),
+                Width = targetArea.Width,
+                Height = targetArea.Height,
+                FillColor = color,
+                StrokeColor = MagickColors.None,
+                BackgroundColor = MagickColors.None,
+                TextGravity = gravity,
+                FontStyle = fontStyle,
             };
 
-            return context.DrawText(options, text, font, color, location);
+            using (var caption = new MagickImage($"caption:{text}", settings))
+                context.Composite(caption, targetArea.X, targetArea.Y, CompositeOperator.Over);
+
+            return context;
         }
 
-        public static IImageProcessingContext DrawRectangle(this IImageProcessingContext context, RectangleF rectangle, Color color, float thickness = 1)
+        public static MagickImage DrawBorder(this MagickImage context, IMagickColor<ushort> color)
         {
-            var points = new PointF[]
-            {
-                new (rectangle.Left, rectangle.Top),
-                new (rectangle.Right, rectangle.Top),
-                new (rectangle.Right, rectangle.Bottom),
-                new (rectangle.Left, rectangle.Bottom),
-                new (rectangle.Left, rectangle.Top),
-            };
+            new Drawables()
+                .StrokeColor(color)
+                .Line(0, 0, context.Width - 1, 0)
+                .Line(context.Width - 1, 0, context.Width - 1, context.Height - 1)
+                .Line(context.Width - 1, context.Height - 1, 0, context.Height - 1)
+                .Line(0, context.Height - 1, 0, 0)
+                .Draw(context);
 
-            return context.DrawPolygon(color, thickness, points);
+            return context;
         }
     }
 }

@@ -6,15 +6,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\font\**" />
     <EmbeddedResource Include="Resources\proxy\**" />
   </ItemGroup>
 
+
   <ItemGroup>
-    <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta15" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
-    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta13" />
-    <PackageReference Include="TripleSix.Core" Version="5.0.13" />
+    <Content Include="Resources\font\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="9.1.2" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+    <PackageReference Include="TripleSix.Core" Version="5.0.18" />
+  </ItemGroup>
 </Project>

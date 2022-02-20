@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Autofac;
 using GeneratorCore.Dto;
+using GeneratorCore.Enums;
 using GeneratorCore.Services;
 using YgoCardGenerator.Types;
 
@@ -31,11 +32,11 @@ namespace YgoCardGenerator.Commands
             var output = GetOptionValue(0);
             var input = new ComposeDataDto
             {
-                Name = "Gundog",
-                CardType = GeneratorCore.Enums.CardTypes.Monster,
-                MonsterType = new[] { GeneratorCore.Enums.MonsterTypes.Normal },
-                Attribute = new[] { GeneratorCore.Enums.MonsterAttributes.Light },
-                Race = new[] { GeneratorCore.Enums.MonsterRaces.DivineBeast },
+                Name = "Chaos Emperor",
+                CardType = CardTypes.Monster,
+                MonsterType = new[] { MonsterTypes.Effect, },
+                Attribute = new[] { MonsterAttributes.Light },
+                Race = new[] { MonsterRaces.WingedBeast },
                 ArtworkPath = @"G:\My Drive\Personal\avatar.jpg",
                 Level = 4,
                 ATK = 1500,

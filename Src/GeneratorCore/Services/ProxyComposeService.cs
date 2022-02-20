@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using GeneratorCore.Dto;
 using GeneratorCore.Enums;
 using GeneratorCore.Helpers;
-using SixLabors.Fonts;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Processing;
-using TripleSix.Core.Extensions;
+using ImageMagick;
 using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Services
@@ -21,131 +17,122 @@ namespace GeneratorCore.Services
         public override async Task Write(ComposeDataDto input, string outputFilename)
         {
             await base.Write(input, outputFilename);
+
             using (var card = GenerateCard(input))
             {
-                card.Mutate(context =>
+                DrawCardType(card, input);
+                DrawCardFrame(card, input);
+                DrawCardName(card, input);
+                DrawArtwork(card, input);
+
+                if (input.IsSpellTrap)
                 {
-                    DrawCardType(context, input);
-                    DrawCardFrame(context, input);
-                    DrawCardName(context, input);
-                    DrawArtwork(context, input);
+                    DrawSpellType(card, input);
+                    DrawSpellEffect(card, input);
+                }
+                else
+                {
+                    DrawMonsterAttribute(card, input);
+                    DrawMonsterLevelRankRating(card, input);
+                    DrawMonsterType(card, input);
+                    DrawMonsterEffect(card, input);
+                    DrawMonsterAtkDef(card, input);
+                }
 
-                    if (input.IsSpellTrap)
-                    {
-                        DrawSpellType(context, input);
-                        DrawSpellEffect(context, input);
-                    }
-                    else
-                    {
-                        DrawMonsterAttribute(context, input);
-                        DrawMonsterLevelRankRating(context, input);
-                        DrawMonsterType(context, input);
-                        DrawMonsterEffect(context, input);
-                        DrawMonsterAtkDef(context, input);
-                    }
-                });
-
-                await card.SaveAsPngAsync(outputFilename);
+                await card.WriteAsync(outputFilename);
             }
         }
 
-        protected void DrawCardType(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawCardType(MagickImage card, ComposeDataDto input)
         {
             var cardType = input.IsSpellTrap
                 ? GetResource("card_type", input.CardType.ToString("D"))
                 : GetResource("card_type", input.MonsterPrimaryTypes.First(x => x != MonsterTypes.Pendulum).ToString("D"));
 
-            context.DrawResource(cardType);
+            card.DrawResource(cardType);
         }
 
-        protected void DrawCardFrame(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawCardFrame(MagickImage card, ComposeDataDto input)
         {
             var cardFrame = GetResource("card_frame", input.Rarity.ToString().ToKebabCase(), "card-frame");
-            context.DrawResource(cardFrame);
+            card.DrawResource(cardFrame);
         }
 
-        protected void DrawCardName(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawCardName(MagickImage card, ComposeDataDto input)
         {
-            var target = new RectangleF(42, 50, 540, 65);
-            var fontFamily = "Yu-Gi-Oh! Matrix Small Caps 1";
+            var font = "Yu-Gi-Oh! Matrix Regular Small Caps 1";
+            var size = 80;
+            var location = new PointD(50, 43);
+            var maxWith = 525;
+            var color = input.IsSpellTrap || input.IsMonsterType(MonsterTypes.Xyz, MonsterTypes.Link)
+                ? MagickColors.White
+                : MagickColors.Black;
 
-            Color color;
-            if (input.IsSpellTrap || input.IsMonsterType(MonsterTypes.Xyz, MonsterTypes.Link))
-                color = Color.White;
-            else
-                color = Color.Black;
-
-            context.DrawText(
-                input.Name,
-                target,
-                fontFamily,
-                color,
-                verticalAlignment: VerticalAlignment.Center,
-                anchorPoint: AnchorPositionMode.Left,
-                verticalPadding: 0,
-                wordwrap: false);
+            card.DrawTextLine(input.Name, location, font, color, size, maxWidth: maxWith);
         }
 
-        protected void DrawArtwork(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawArtwork(MagickImage card, ComposeDataDto input)
         {
             if (input.ArtworkPath.IsNullOrWhiteSpace()) return;
 
-            using (var artwork = Image.Load(input.ArtworkPath))
+            using (var artwork = new MagickImage(input.ArtworkPath))
             {
-                var location = new Point(84, 187);
-                artwork.Mutate(c => c.Resize(526, 526));
-                context.DrawImage(artwork, location, 1);
+                artwork.Resize(525, 525);
+
+                var location = new PointD(84, 187);
+                card.Composite(artwork, location, CompositeOperator.Over);
             }
         }
 
-        protected void DrawSpellType(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawSpellType(MagickImage card, ComposeDataDto input)
         {
             if (input.SpellType == SpellTypes.Normal)
             {
                 var spellTypeText = GetResource("spelltrap_type", $"{input.CardType:D}_0");
-                context.DrawResource(spellTypeText);
+                card.DrawResource(spellTypeText);
             }
             else
             {
                 var spellTypeText = GetResource("spelltrap_type", $"{input.CardType:D}_1");
                 var spellTypeIcon = GetResource("spelltrap_type", $"{input.SpellType:D}");
-                context.DrawResource(spellTypeText)
+                card.DrawResource(spellTypeText)
                     .DrawResource(spellTypeIcon);
             }
         }
 
-        protected void DrawSpellEffect(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawSpellEffect(MagickImage card, ComposeDataDto input)
         {
-            var target = new RectangleF(44, 758, 604, 197);
-            var fontFamily = "Yu-Gi-Oh! Matrix Book";
-            var color = Color.Black;
+            var target = new Rectangle(55, 765, 580, 180);
+            var font = "Yu-Gi-Oh! Matrix Book";
+            var color = MagickColors.Black;
+            var maxFontSize = 20;
 
-            context.DrawText(input.Effect, target, fontFamily, color, maxFontSize: 20);
+            card.DrawTextArea(input.Effect, target, font, color, maxFontSize: maxFontSize, gravity: Gravity.Northwest);
         }
 
-        protected void DrawMonsterAttribute(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawMonsterAttribute(MagickImage card, ComposeDataDto input)
         {
             if (input.Attribute.IsNullOrEmpty()) return;
             var attr = input.Attribute.First();
             if (attr == MonsterAttributes.None) return;
 
             var attribute = GetResource("attribute", attr.ToString("D"));
-            context.DrawResource(attribute);
+            card.DrawResource(attribute);
         }
 
-        protected void DrawMonsterLevelRankRating(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawMonsterLevelRankRating(MagickImage card, ComposeDataDto input)
         {
             if (input.IsMonsterType(MonsterTypes.Link))
             {
                 var linkLabel = GetResource("link_label");
-                context.DrawResource(linkLabel);
+                card.DrawResource(linkLabel);
 
-                var location = new PointF(614, 922);
-                var font = "EurostileCandyW01-Semibold";
+                var location = new PointD(615, 923);
+                var font = "Eurostile Candy W01 Semibold";
                 var size = 28;
-                var color = Color.Black;
+                var color = MagickColors.Black;
 
-                context.DrawText(input.Level.ToString(), location, font, size, color);
+                card.DrawTextLine(input.Level.ToString(), location, font, color, size);
                 return;
             }
 
@@ -154,20 +141,21 @@ namespace GeneratorCore.Services
             if (input.IsMonsterType(MonsterTypes.Xyz))
             {
                 var rank = GetResource("level_rank", $"rnk{input.Level:D}");
-                context.DrawResource(rank);
+                card.DrawResource(rank);
                 return;
             }
 
             var level = GetResource("level_rank", $"lvl{input.Level:D}");
-            context.DrawResource(level);
+            card.DrawResource(level);
         }
 
-        protected void DrawMonsterType(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawMonsterType(MagickImage card, ComposeDataDto input)
         {
-            var location = new PointF(53, 766);
-            var font = "Yu-Gi-Oh!ITCStoneSerifSmallCaps";
-            var size = 22;
-            var color = Color.Black;
+            var location = new PointD(53, 763);
+            var font = "Yu-Gi-Oh! ITC Stone Serif Small Caps Bold";
+            var size = 24;
+            var maxWidth = 590;
+            var color = MagickColors.Black;
 
             var races = input.Race.Select(x => EnumHelper.GetDescription(x));
 
@@ -176,6 +164,8 @@ namespace GeneratorCore.Services
             var secondaryTypes = input.MonsterSecondaryTypes.Where(x => new[] { MonsterTypes.Nomi }.Contains(x) == false);
             if (primaryTypes.Any())
                 types.AddRange(primaryTypes.Select(x => EnumHelper.GetDescription(x)));
+            if (input.IsMonsterType(MonsterTypes.Pendulum))
+                types.Add(EnumHelper.GetDescription(MonsterTypes.Pendulum));
             if (secondaryTypes.Any())
                 types.AddRange(secondaryTypes.Select(x => EnumHelper.GetDescription(x)));
             if (input.IsMonsterType(MonsterTypes.Effect))
@@ -187,43 +177,39 @@ namespace GeneratorCore.Services
                 + string.Join("/", races)
                 + (types.IsNullOrEmpty() ? string.Empty : "/" + string.Join("/", types))
                 + "]";
-            context.DrawText(text, location, font, size, color);
+
+            card.DrawTextLine(text, location, font, color, size, maxWidth: maxWidth);
         }
 
-        protected void DrawMonsterEffect(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawMonsterEffect(MagickImage card, ComposeDataDto input)
         {
-            var target = new RectangleF(44, 798, 604, 125);
-            var color = Color.Black;
+            var target = new Rectangle(55, 795, 580, 125);
+            var font = (input.IsMonsterType(MonsterTypes.Normal) && input.Flavor.IsNotNullOrWhiteSpace())
+                    ? "Yu-Gi-Oh! ITC Stone Serif LT Italic"
+                    : "Yu-Gi-Oh! Matrix Book";
+            var color = MagickColors.Black;
+            var maxFontSize = 20;
+            var text = input.Effect.IsNotNullOrWhiteSpace() ? input.Effect : input.Flavor;
 
-            if (input.IsMonsterType(MonsterTypes.Normal) && input.Flavor.IsNotNullOrWhiteSpace())
-            {
-                var fontFamily = "Yu-Gi-Oh! StoneSerif LT";
-                context.DrawText(input.Flavor, target, fontFamily, color, maxFontSize: 20, verticalPadding: 0);
-            }
-            else
-            {
-                var fontFamily = "Yu-Gi-Oh! Matrix Book";
-                context.DrawText(input.Effect, target, fontFamily, color, maxFontSize: 20, verticalPadding: 0);
-            }
+            card.DrawTextArea(text, target, font, color, maxFontSize: maxFontSize, gravity: Gravity.Northwest);
         }
 
-        protected void DrawMonsterAtkDef(IImageProcessingContext context, ComposeDataDto input)
+        protected void DrawMonsterAtkDef(MagickImage card, ComposeDataDto input)
         {
-            var level = GetResource("atkdef_line");
-            context.DrawResource(level);
+            card.DrawResource(GetResource("atkdef_line"));
 
-            var locationAtk = new PointF(380, 927);
-            var locationDef = new PointF(525, 927);
-            var font = "MatrixBoldSmallCaps";
+            var locationAtk = new PointD(380, 927);
+            var locationDef = new PointD(530, 927);
+            var font = "Matrix Bold Small Caps";
             var size = 30;
-            var color = Color.Black;
+            var color = MagickColors.Black;
 
             var atk = "ATK/" + (input.ATK.HasValue ? input.ATK.ToString() : "?").PadLeft(4);
             var def = "DEF/" + (input.DEF.HasValue ? input.DEF.ToString() : "?").PadLeft(4);
 
-            context.DrawText(atk, locationAtk, font, size, color);
+            card.DrawTextLine(atk, locationAtk, font, color, size);
             if (input.IsMonsterType(MonsterTypes.Link) == false)
-                context.DrawText(def, locationDef, font, size, color);
+                card.DrawTextLine(def, locationDef, font, color, size);
         }
     }
 }

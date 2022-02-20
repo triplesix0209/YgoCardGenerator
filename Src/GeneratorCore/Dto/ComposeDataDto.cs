@@ -2,7 +2,7 @@
 using GeneratorCore.Enums;
 using TripleSix.Core.Attributes;
 using TripleSix.Core.Dto;
-using TripleSix.Core.Extensions;
+using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Dto
 {
@@ -51,7 +51,7 @@ namespace GeneratorCore.Dto
         public bool IsMonster => CardType == CardTypes.Monster;
 
         public MonsterTypes[] MonsterPrimaryTypes => MonsterType
-            .Where(x => new[]
+            ?.Where(x => new[]
             {
                 MonsterTypes.Normal,
                 MonsterTypes.Effect,
@@ -59,13 +59,13 @@ namespace GeneratorCore.Dto
                 MonsterTypes.Fusion,
                 MonsterTypes.Synchro,
                 MonsterTypes.Xyz,
-                MonsterTypes.Pendulum,
                 MonsterTypes.Link,
             }.Contains(x))
+            .OrderByDescending(x => x)
             .ToArray();
 
         public MonsterTypes[] MonsterSecondaryTypes => MonsterType
-            .Where(x => new[]
+            ?.Where(x => new[]
             {
                 MonsterTypes.Normal,
                 MonsterTypes.Effect,
