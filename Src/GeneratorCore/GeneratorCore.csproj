@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Resources\proxy\**" />
+    <EmbeddedResource Include="Resources\Proxy\**" />
   </ItemGroup>
 
 
   <ItemGroup>
-    <Content Include="Resources\font\**">
+    <Content Include="Resources\Font\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

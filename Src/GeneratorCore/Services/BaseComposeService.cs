@@ -43,7 +43,7 @@ namespace GeneratorCore.Services
         protected virtual string GetResource(params string[] names)
         {
             var resourceName = string.Join(".", names);
-            resourceName = string.Join(".", "GeneratorCore.Resources", Template.ToKebabCase(), resourceName, "png");
+            resourceName = string.Join(".", "GeneratorCore.Resources", Template, resourceName, "png");
             return resourceName;
         }
 

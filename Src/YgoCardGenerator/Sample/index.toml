@@ -1,7 +1,0 @@
-marcos = [
-    "./marco.toml"
-]
-
-packs = [
-    "./sample/pack.toml"
-]
