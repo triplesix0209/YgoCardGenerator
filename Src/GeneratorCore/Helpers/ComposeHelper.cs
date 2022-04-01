@@ -88,7 +88,7 @@ namespace GeneratorCore.Helpers
             Rectangle targetArea,
             string fontFamily,
             IMagickColor<ushort> color = null,
-            double? minFontSize = 10,
+            double? minFontSize = 8,
             double? maxFontSize = 20,
             Gravity gravity = Gravity.Northwest,
             FontStyleType fontStyle = FontStyleType.Normal,
@@ -117,27 +117,22 @@ namespace GeneratorCore.Helpers
             }
         }
 
-        public static MagickImage DrawDebugBorder(this MagickImage context)
+        public static TEnum[] MatchCardType<TEnum>(this string inputType, params TEnum[] cardTypes)
+            where TEnum : Enum
         {
-            new Drawables()
-                .StrokeColor(MagickColors.Red)
-                .Line(0, 0, context.Width - 1, 0)
-                .Line(context.Width - 1, 0, context.Width - 1, context.Height - 1)
-                .Line(context.Width - 1, context.Height - 1, 0, context.Height - 1)
-                .Line(0, context.Height - 1, 0, 0)
-                .Draw(context);
-
-            return context;
+            return inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries)
+                .Where(type => cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()))
+                .Select(type => EnumHelper.Parse<TEnum>(type.ToCamelCase()))
+                .ToArray();
         }
 
-        public static bool ContainCardType(this string inputType, params Enum[] cardTypes)
+        public static TEnum[] MatchCardType<TEnum>(this string inputType)
+            where TEnum : Enum
         {
-            var inputTypes = inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            return inputTypes.Any(type =>
-                cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()));
+            return MatchCardType(inputType, (TEnum[])EnumHelper.GetValues(typeof(TEnum)));
         }
 
-        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue, params Enum[] cardTypes)
+        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue, params TEnum[] cardTypes)
             where TEnum : Enum
         {
             var inputTypes = inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries);
@@ -145,13 +140,13 @@ namespace GeneratorCore.Helpers
                 cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()));
 
             if (result is null) return defaultValue;
-            return EnumHelper.Parse<TEnum>(result);
+            return EnumHelper.Parse<TEnum>(result.ToCamelCase());
         }
 
-        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue, IEnumerable<TEnum> cardTypes)
+        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue)
             where TEnum : Enum
         {
-            return FirstMatchCardType(inputType, defaultValue, cardTypes.ToArray());
+            return FirstMatchCardType(inputType, defaultValue, (TEnum[])EnumHelper.GetValues(typeof(TEnum)));
         }
     }
 }

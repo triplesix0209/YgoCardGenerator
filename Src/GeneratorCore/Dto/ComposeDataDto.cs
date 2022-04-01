@@ -56,10 +56,10 @@ namespace GeneratorCore.Dto
         public int? LinkRating { get; set; }
 
         [MinValidate(0)]
-        public int? ATK { get; set; }
+        public int? Atk { get; set; }
 
         [MinValidate(0)]
-        public int? DEF { get; set; }
+        public int? Def { get; set; }
 
         public PendulumSizes PendulumSize { get; set; } = PendulumSizes.Auto;
 

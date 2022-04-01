@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using GeneratorCore.Dto;
@@ -14,9 +15,59 @@ namespace GeneratorCore.Services
     {
         public override string Template => "Proxy";
 
-        public override async Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig = null)
+        public override async Task Write(CardModelDto model, string outputPath, CardSetDto setConfig)
         {
-            await base.Write(input, outputFilename);
+            var input = new ComposeDataDto
+            {
+                Code = model.Code,
+                Name = model.Name,
+                Rarity = model.Rarity,
+                CardType = model.Type.FirstMatchCardType(CardTypes.Monster, CardTypes.Spell, CardTypes.Trap),
+            };
+
+            input.ArtworkPath = Path.Join(model.BasePath, input.Code);
+            if (File.Exists(input.ArtworkPath + ".png"))
+                input.ArtworkPath += ".png";
+            else
+                input.ArtworkPath += ".jpg";
+
+            if (input.IsSpellTrap)
+            {
+                input.SpellType = model.Type.FirstMatchCardType(SpellTypes.Normal);
+                input.Effect = model.Effect?.Trim();
+            }
+            else
+            {
+                input.MonsterType = model.Type.MatchCardType<MonsterTypes>();
+                input.Attribute = model.Attribute.MatchCardType<MonsterAttributes>();
+                input.Race = model.Race.MatchCardType<MonsterRaces>();
+
+                input.LeftScale = model.LeftScale ?? model.Scale;
+                input.RightScale = model.RightScale ?? model.Scale;
+                if (input.IsMonsterType(MonsterTypes.Link))
+                    input.LinkRating = model.Link ?? model.Level;
+                else if (input.IsMonsterType(MonsterTypes.Xyz))
+                    input.Rank = model.Rank ?? model.Level;
+                else
+                    input.Level = model.Level;
+
+                input.Atk = model.Atk;
+                input.Def = model.Def;
+                input.Flavor = model.Flavor?.Trim();
+                input.Effect = model.Effect?.Trim();
+                input.PendulumEffect = model.PendulumEffect?.Trim();
+                input.PendulumSize = model.PendulumSize;
+            }
+
+            if (input.IsLink) input.LinkArrow = model.LinkArrow.MatchCardType<LinkArrows>();
+
+            var outputFilename = Path.Join(outputPath, input.Code + ".png");
+            await Write(input, outputFilename, setConfig);
+        }
+
+        public override async Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig)
+        {
+            await base.Write(input, outputFilename, setConfig);
 
             using (var card = GenerateCard(input, setConfig))
             {
@@ -123,7 +174,7 @@ namespace GeneratorCore.Services
                 ? MagickColors.White
                 : MagickColors.Black;
 
-            await card.DrawTextLine(input.Name, location, font, size, color, maxWidth);
+            await card.DrawTextLine(input.Name, location, font, size, color, maxWidth: maxWidth);
         }
 
         protected async Task DrawLinkArrow(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
@@ -316,8 +367,8 @@ namespace GeneratorCore.Services
             var locationDef = new Point(525, 927);
             var font = "Matrix Bold Small Caps";
             var size = 30;
-            var atk = "ATK/" + (input.ATK.HasValue ? input.ATK.ToString() : "?").PadLeft(4);
-            var def = "DEF/" + (input.DEF.HasValue ? input.DEF.ToString() : "?").PadLeft(4);
+            var atk = "ATK/" + (input.Atk.HasValue ? input.Atk.ToString() : "?").PadLeft(4);
+            var def = "DEF/" + (input.Def.HasValue ? input.Def.ToString() : "?").PadLeft(4);
 
             await card.DrawResource(GetResource("atkdef_line"));
             await card.DrawTextLine(atk, locationAtk, font, size);

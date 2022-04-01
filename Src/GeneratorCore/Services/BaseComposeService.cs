@@ -14,7 +14,9 @@ namespace GeneratorCore.Services
     {
         public abstract string Template { get; }
 
-        public virtual Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig = null)
+        public abstract Task Write(CardModelDto model, string outputPath, CardSetDto setConfig);
+
+        public virtual Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig)
         {
             if (setConfig is null || !setConfig.ComposeSilence)
                 Console.WriteLine($"Generate card: {input.Code}...");

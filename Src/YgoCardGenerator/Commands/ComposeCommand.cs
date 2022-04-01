@@ -2,11 +2,8 @@
 using System.Threading.Tasks;
 using Autofac;
 using GeneratorCore.Dto;
-using GeneratorCore.Enums;
-using GeneratorCore.Helpers;
 using GeneratorCore.Services;
 using Tomlyn;
-using TripleSix.Core.Helpers;
 using YgoCardGenerator.Types;
 
 namespace YgoCardGenerator.Commands
@@ -47,54 +44,11 @@ namespace YgoCardGenerator.Commands
                 foreach (var card in cards.Values)
                 {
                     var model = Toml.ToModel<CardModelDto>(Toml.FromModel(card));
-                    var input = new ComposeDataDto
-                    {
-                        Code = model.Code,
-                        Name = model.Name,
-                        Rarity = model.Rarity,
-                        CardType = model.Type.FirstMatchCardType(CardTypes.Monster, CardTypes.Spell, CardTypes.Trap),
-                        Flavor = model.Flavor?.Trim(),
-                        Effect = model.Effect?.Trim(),
-                        PendulumEffect = model.PendulumEffect?.Trim(),
-                    };
-
-                    input.ArtworkPath = Path.Join(basePackPath, input.Code);
-                    if (File.Exists(input.ArtworkPath + ".png"))
-                        input.ArtworkPath += ".png";
-                    else
-                        input.ArtworkPath += ".jpg";
-
-                    if (input.IsSpellTrap)
-                    {
-                        input.SpellType = model.Type.FirstMatchCardType(SpellTypes.Normal, EnumHelper.GetValues<SpellTypes>());
-                    }
-                    else
-                    {
-                        //input.Attribute = model.Attribute.FirstMatchCardType(null, EnumHelper.GetValues<MonsterAttributes>());
-                    }
-
-                    var outputFilename = Path.Join(outputPath, input.Code + ".png");
+                    model.BasePath = basePackPath;
                     await Container.Resolve<ProxyComposeService>()
-                        .Write(input, outputFilename, setConfig);
+                        .Write(model, outputPath, setConfig);
                 }
             }
-
-            //var input = new ComposeDataDto
-            //{
-            //    Name = "Supreme King Dragon Odd-Eyes",
-            //    CardType = CardTypes.Monster,
-            //    MonsterType = new[] { MonsterTypes.Effect, MonsterTypes.Pendulum },
-            //    Attribute = new[] { MonsterAttributes.Dark },
-            //    Race = new[] { MonsterRaces.Dragon },
-            //    ArtworkPath = @"C:\Users\tripl\Pictures\avatar.jpg",
-            //    Level = 8,
-            //    LeftScale = 4,
-            //    RightScale = 4,
-            //    ATK = 2500,
-            //    DEF = 2000,
-            //    PendulumEffect = "You can Tribute 1 \"Supreme King Dragon\" monster; destroy this card, and if you do, add 1 Pendulum Monster with 1500 or less ATK from your Deck to your hand.",
-            //    Effect = "You can Tribute 2 \"Supreme King Dragon\" monsters; Special Summon this card from your hand. If your Pendulum Monster battles an opponent's monster, any battle damage it inflicts to your opponent is doubled. During the Battle Phase (Quick Effect): You can Tribute this card; Special Summon up to 2 face-up \"Supreme King Dragon\" and/or \"Supreme King Gate\" Pendulum Monsters from your Extra Deck in Defense Position, except \"Supreme King Dragon Odd - Eyes\".",
-            //};
         }
     }
 }
