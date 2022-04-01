@@ -39,6 +39,7 @@ namespace GeneratorCore.Services
             else
             {
                 input.MonsterType = model.Type.MatchCardType<MonsterTypes>();
+                if (!input.MonsterType.Any()) input.MonsterType = new[] { MonsterTypes.Normal };
                 input.Attribute = model.Attribute.MatchCardType<MonsterAttributes>();
                 input.Race = model.Race.MatchCardType<MonsterRaces>();
 

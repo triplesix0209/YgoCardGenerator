@@ -9,4 +9,13 @@
     <ProjectReference Include="..\GeneratorCore\GeneratorCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Sample\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Sample\marco.toml" />
+  </ItemGroup>
 </Project>

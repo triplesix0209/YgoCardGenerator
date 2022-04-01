@@ -1,0 +1,56 @@
+[monster-reborn]
+code = 83764718
+name = "Monster Reborn"
+type = "spell"
+effect = """\
+Target 1 monster in either GY; Special Summon it. \
+"""
+
+[odd-eyes-pendulum-dragon]
+code = 16178681
+name = "Odd-Eyes Pendulum Dragon"
+type = "monster pendulum effect"
+attribute = "dark"
+race = "dragon"
+level = 7
+scale = 4
+atk = 2500
+def = 2000
+pendulum_effect = """\
+You can reduce the battle damage you take from an attack involving a Pendulum Monster you control to 0. \
+During your End Phase: \
+    You can destroy this card, and if you do, \
+    add 1 Pendulum Monster with 1500 or less ATK from your Deck to your hand. \
+    You can only use each Pendulum Effect of {CARD_NAME} once per turn. \
+"""
+effect = "If this card battles an opponent's monster, any battle damage this card inflicts to your opponent is doubled."
+
+[decode-talker]
+code = 1861629
+name = "Decode Talker"
+type = "monster link effect"
+attribute = "dark"
+race = "cyberse"
+link = 3
+link_arrow = "top bottom-left bottom-right"
+atk = 2300
+effect = """\
+2+ Effect Monsters
+Gains 500 ATK for each monster it points to. \
+When your opponent activates a card or effect that targets a card(s) you control (Quick Effect): \
+    You can Tribute 1 monster this card points to; \
+    negate the activation, and if you do, destroy that card. \
+"""
+
+[judgment-arrows]
+code = 511009503
+name = "Judgment Arrows"
+type = "spell link"
+link_arrow = "top top-left top-right"
+effect = """\
+If a Link Monster this card points to battles, \
+    its ATK becomes double its current ATK during damage calculation only. \
+When this card leaves the field while it points to a monster(s), \
+    destroy all those monsters. You can only control 1 {CARD_NAME}, \
+    and only in your Spell & Trap Zone a Link Monster points to. \
+"""

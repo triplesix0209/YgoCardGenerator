@@ -37,6 +37,7 @@ namespace YgoCardGenerator.Commands
                 Directory.CreateDirectory(outputPath);
 
             var setConfig = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetPath));
+            setConfig.BasePath = basePath;
             foreach (var packPath in setConfig.Packs)
             {
                 var basePackPath = Path.GetDirectoryName(Path.Join(basePath, packPath));

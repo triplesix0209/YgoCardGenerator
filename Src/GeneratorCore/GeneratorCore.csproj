@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="11.0.0" />
+    <PackageReference Include="SmartFormat.NET" Version="3.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="Tomlyn" Version="0.14.0" />
     <PackageReference Include="TripleSix.Core" Version="5.0.42" />
