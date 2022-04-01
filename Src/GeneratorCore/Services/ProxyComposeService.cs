@@ -194,6 +194,8 @@ namespace GeneratorCore.Services
             var color = input.IsSpellTrap || input.IsMonsterType(MonsterTypes.Xyz, MonsterTypes.Link)
                 ? MagickColors.White
                 : MagickColors.Black;
+            if (input.Rarity == CardRarities.Gold)
+                color = MagickColors.Gold;
 
             await card.DrawTextLine(input.Name, location, font, size, color, maxWidth: maxWidth);
         }
