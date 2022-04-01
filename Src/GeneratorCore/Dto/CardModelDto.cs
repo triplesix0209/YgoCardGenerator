@@ -33,9 +33,9 @@ namespace GeneratorCore.Dto
 
         public int? RightScale { get; set; }
 
-        public int? Atk { get; set; }
+        public string Atk { get; set; }
 
-        public int? Def { get; set; }
+        public string Def { get; set; }
 
         public string Flavor { get; set; }
 

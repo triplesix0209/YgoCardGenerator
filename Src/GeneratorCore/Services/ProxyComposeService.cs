@@ -52,8 +52,8 @@ namespace GeneratorCore.Services
                 else
                     input.Level = model.Level;
 
-                input.Atk = model.Atk;
-                input.Def = model.Def;
+                input.Atk = model.Atk.IsNotNullOrWhiteSpace() && model.Atk.Trim() != "?" ? int.Parse(model.Atk) : null;
+                input.Def = model.Def.IsNotNullOrWhiteSpace() && model.Def.Trim() != "?" ? int.Parse(model.Def) : null;
                 input.Flavor = model.Flavor?.Trim();
                 input.Effect = model.Effect?.Trim();
                 input.PendulumEffect = model.PendulumEffect?.Trim();
@@ -93,6 +93,26 @@ namespace GeneratorCore.Services
                 }
 
                 await card.WriteAsync(outputFilename);
+
+                if (setConfig.DrawField && input.IsSpellTrap && input.IsSpellType(SpellTypes.Field))
+                {
+                    var fieldPath = Path.GetDirectoryName(outputFilename);
+                    fieldPath = Path.Join(fieldPath, "field");
+                    if (!Directory.Exists(fieldPath))
+                        Directory.CreateDirectory(fieldPath);
+
+                    using (var artwork = new MagickImage())
+                    {
+                        await artwork.ReadAsync(input.ArtworkPath);
+                        artwork.Resize(new MagickGeometry { Width = 512, Height = 512, FillArea = true, });
+                        artwork.Crop(512, 512);
+
+                        var field = new MagickImage(MagickColors.Transparent, 512, 512);
+                        field.Composite(artwork, new PointD(0, 0), CompositeOperator.Over);
+
+                        await field.WriteAsync(Path.Join(fieldPath, input.Code + ".png"));
+                    }
+                }
             }
         }
 

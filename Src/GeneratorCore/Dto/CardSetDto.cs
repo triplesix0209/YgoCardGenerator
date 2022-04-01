@@ -6,6 +6,8 @@ namespace GeneratorCore.Dto
     {
         public string BasePath { get; set; }
 
+        public bool DrawField { get; set; } = true;
+
         public string[] Marcos { get; set; }
 
         public string[] Packs { get; set; }
