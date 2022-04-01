@@ -1,9 +1,12 @@
-﻿using System.Drawing;
-using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using ImageMagick;
 using ImageMagick.Formats;
+using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Helpers
 {
@@ -125,6 +128,30 @@ namespace GeneratorCore.Helpers
                 .Draw(context);
 
             return context;
+        }
+
+        public static bool ContainCardType(this string inputType, params Enum[] cardTypes)
+        {
+            var inputTypes = inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            return inputTypes.Any(type =>
+                cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()));
+        }
+
+        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue, params Enum[] cardTypes)
+            where TEnum : Enum
+        {
+            var inputTypes = inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            var result = inputTypes.FirstOrDefault(type =>
+                cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()));
+
+            if (result is null) return defaultValue;
+            return EnumHelper.Parse<TEnum>(result);
+        }
+
+        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue, IEnumerable<TEnum> cardTypes)
+            where TEnum : Enum
+        {
+            return FirstMatchCardType(inputType, defaultValue, cardTypes.ToArray());
         }
     }
 }

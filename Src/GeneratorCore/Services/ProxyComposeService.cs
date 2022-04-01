@@ -14,44 +14,44 @@ namespace GeneratorCore.Services
     {
         public override string Template => "Proxy";
 
-        public override async Task Write(ComposeDataDto input, string outputFilename)
+        public override async Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig = null)
         {
             await base.Write(input, outputFilename);
 
-            using (var card = GenerateCard(input))
+            using (var card = GenerateCard(input, setConfig))
             {
-                await DrawCardType(card, input);
-                await DrawArtwork(card, input);
-                await DrawCardFrame(card, input);
-                await DrawCardName(card, input);
-                await DrawLinkArrow(card, input);
+                await DrawCardType(card, input, setConfig);
+                await DrawArtwork(card, input, setConfig);
+                await DrawCardFrame(card, input, setConfig);
+                await DrawCardName(card, input, setConfig);
+                await DrawLinkArrow(card, input, setConfig);
 
                 if (input.IsSpellTrap)
                 {
-                    await DrawSpellType(card, input);
-                    await DrawSpellEffect(card, input);
+                    await DrawSpellType(card, input, setConfig);
+                    await DrawSpellEffect(card, input, setConfig);
                 }
                 else
                 {
-                    await DrawMonsterAttribute(card, input);
-                    await DrawMonsterLevelRankScaleRating(card, input);
-                    await DrawMonsterType(card, input);
-                    await DrawMonsterEffect(card, input);
-                    await DrawMonsterAtkDef(card, input);
+                    await DrawMonsterAttribute(card, input, setConfig);
+                    await DrawMonsterLevelRankScaleRating(card, input, setConfig);
+                    await DrawMonsterType(card, input, setConfig);
+                    await DrawMonsterEffect(card, input, setConfig);
+                    await DrawMonsterAtkDef(card, input, setConfig);
                 }
 
                 await card.WriteAsync(outputFilename);
             }
         }
 
-        protected PendulumSizes GetPendulumSize(ComposeDataDto input)
+        protected PendulumSizes GetPendulumSize(ComposeDataDto input, CardSetDto setConfig)
         {
             var result = input.PendulumSize;
             if (result == PendulumSizes.Auto) result = PendulumSizes.Medium;
             return result;
         }
 
-        protected async Task DrawCardType(MagickImage card, ComposeDataDto input)
+        protected async Task DrawCardType(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             await card.DrawResource(input.IsSpellTrap
                 ? GetResource("card_type", input.CardType.ToString("D"))
@@ -61,7 +61,7 @@ namespace GeneratorCore.Services
                 await card.DrawResource(GetResource("card_type", MonsterTypes.Pendulum.ToString("D")));
         }
 
-        protected async Task DrawArtwork(MagickImage card, ComposeDataDto input)
+        protected async Task DrawArtwork(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             var location = new PointD(84, 187);
             var width = 526;
@@ -71,7 +71,7 @@ namespace GeneratorCore.Services
             {
                 location = new PointD(44, 182);
                 width = 605;
-                height = GetPendulumSize(input) == PendulumSizes.Large ? 595 : 570;
+                height = GetPendulumSize(input, setConfig) == PendulumSizes.Large ? 595 : 570;
             }
 
             if (input.ArtworkPath.IsNullOrWhiteSpace())
@@ -92,7 +92,7 @@ namespace GeneratorCore.Services
             }
         }
 
-        protected async Task DrawCardFrame(MagickImage card, ComposeDataDto input)
+        protected async Task DrawCardFrame(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             string cardFrame;
             if (input.IsMonsterType(MonsterTypes.Pendulum))
@@ -100,7 +100,7 @@ namespace GeneratorCore.Services
                 cardFrame = GetResource(
                     "card_frame",
                     input.Rarity.ToString().ToKebabCase(),
-                    $"pendulum-{EnumHelper.GetName(GetPendulumSize(input)).ToKebabCase()}");
+                    $"pendulum-{EnumHelper.GetName(GetPendulumSize(input, setConfig)).ToKebabCase()}");
             }
             else
             {
@@ -113,7 +113,7 @@ namespace GeneratorCore.Services
             await card.DrawResource(cardFrame);
         }
 
-        protected async Task DrawCardName(MagickImage card, ComposeDataDto input)
+        protected async Task DrawCardName(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             var font = "Yu-Gi-Oh! Matrix Regular Small Caps 1";
             var size = 80;
@@ -126,7 +126,7 @@ namespace GeneratorCore.Services
             await card.DrawTextLine(input.Name, location, font, size, color, maxWidth);
         }
 
-        protected async Task DrawLinkArrow(MagickImage card, ComposeDataDto input)
+        protected async Task DrawLinkArrow(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             if (!input.IsLink) return;
 
@@ -140,7 +140,7 @@ namespace GeneratorCore.Services
             }
         }
 
-        protected async Task DrawSpellType(MagickImage card, ComposeDataDto input)
+        protected async Task DrawSpellType(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             if (input.SpellType == SpellTypes.Link)
                 return;
@@ -159,7 +159,7 @@ namespace GeneratorCore.Services
             }
         }
 
-        protected async Task DrawSpellEffect(MagickImage card, ComposeDataDto input)
+        protected async Task DrawSpellEffect(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             if (input.Effect.IsNullOrWhiteSpace()) return;
 
@@ -169,7 +169,7 @@ namespace GeneratorCore.Services
             await card.DrawTextAreaAsync(input.Effect, target, font);
         }
 
-        protected async Task DrawMonsterAttribute(MagickImage card, ComposeDataDto input)
+        protected async Task DrawMonsterAttribute(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             if (input.Attribute.IsNullOrEmpty()) return;
             var attr = input.Attribute.First();
@@ -180,14 +180,14 @@ namespace GeneratorCore.Services
             await card.DrawResource(attribute);
         }
 
-        protected async Task DrawMonsterLevelRankScaleRating(MagickImage card, ComposeDataDto input)
+        protected async Task DrawMonsterLevelRankScaleRating(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             if (input.IsMonsterType(MonsterTypes.Pendulum))
             {
                 var leftScaleLocation = new Point(55, 690);
                 var rightScaleLocation = new Point(610, 690);
 
-                switch (GetPendulumSize(input))
+                switch (GetPendulumSize(input, setConfig))
                 {
                     case PendulumSizes.Small:
                     case PendulumSizes.Large:
@@ -234,10 +234,10 @@ namespace GeneratorCore.Services
             }
         }
 
-        protected async Task DrawMonsterType(MagickImage card, ComposeDataDto input)
+        protected async Task DrawMonsterType(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             var location = new Point(53, 760);
-            if (input.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(input) == PendulumSizes.Large)
+            if (input.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(input, setConfig) == PendulumSizes.Large)
                 location = new Point(53, 785);
 
             var font = "Yu-Gi-Oh! ITC Stone Serif Small Caps Bold";
@@ -271,13 +271,13 @@ namespace GeneratorCore.Services
             await card.DrawTextLine(text, location, font, size, maxWidth: maxWidth);
         }
 
-        protected async Task DrawMonsterEffect(MagickImage card, ComposeDataDto input)
+        protected async Task DrawMonsterEffect(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             Rectangle target;
 
             if (input.IsMonsterType(MonsterTypes.Pendulum) && input.PendulumEffect.IsNotNullOrWhiteSpace())
             {
-                switch (GetPendulumSize(input))
+                switch (GetPendulumSize(input, setConfig))
                 {
                     case PendulumSizes.Large:
                         target = new Rectangle(108, 640, 478, 135);
@@ -300,7 +300,7 @@ namespace GeneratorCore.Services
             if (cardText.IsNotNullOrWhiteSpace())
             {
                 target = new Rectangle(55, 790, 580, 130);
-                if (input.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(input) == PendulumSizes.Large)
+                if (input.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(input, setConfig) == PendulumSizes.Large)
                     target = new Rectangle(55, 815, 580, 105);
 
                 var font = (input.IsMonsterType(MonsterTypes.Normal) && input.Flavor.IsNotNullOrWhiteSpace())
@@ -310,7 +310,7 @@ namespace GeneratorCore.Services
             }
         }
 
-        protected async Task DrawMonsterAtkDef(MagickImage card, ComposeDataDto input)
+        protected async Task DrawMonsterAtkDef(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
         {
             var locationAtk = new Point(380, 927);
             var locationDef = new Point(525, 927);

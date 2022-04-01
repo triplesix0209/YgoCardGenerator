@@ -2,7 +2,7 @@
   "profiles": {
     "YgoCardGenerator": {
       "commandName": "Project",
-      "commandLineArgs": "compose \"C:\\Users\\tripl\\Desktop\\output.png\""
+      "commandLineArgs": "compose \"C:\\Users\\tripl\\Desktop\\YgoPack\\index.toml\" -o \"C:\\Users\\tripl\\Desktop\\YgoPack\\output\""
     }
   }
 }

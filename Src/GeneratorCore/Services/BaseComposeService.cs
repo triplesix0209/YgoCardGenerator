@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using GeneratorCore.Dto;
 using GeneratorCore.Interfaces;
@@ -13,8 +14,11 @@ namespace GeneratorCore.Services
     {
         public abstract string Template { get; }
 
-        public virtual Task Write(ComposeDataDto input, string outputFilename)
+        public virtual Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig = null)
         {
+            if (setConfig is null || !setConfig.ComposeSilence)
+                Console.WriteLine($"Generate card: {input.Code}...");
+
             if (input.TryValidate().Count > 0)
                 throw new AppException(AppExceptions.CardInputInvalid);
 
@@ -24,9 +28,9 @@ namespace GeneratorCore.Services
             return Task.CompletedTask;
         }
 
-        protected virtual MagickImage GenerateCard(ComposeDataDto input)
+        protected virtual MagickImage GenerateCard(ComposeDataDto input, CardSetDto setConfig)
         {
-            return new MagickImage(MagickColors.Transparent, input.Width, input.Height);
+            return new MagickImage(MagickColors.Transparent, 694, 1013);
         }
 
         protected virtual string GetResource(params string[] names)

@@ -8,24 +8,23 @@ namespace GeneratorCore.Dto
 {
     public class ComposeDataDto : DataDto
     {
-        public int Width { get; set; } = 694;
+        [RequiredValidate]
+        public string Code { get; set; }
 
-        public int Height { get; set; } = 1013;
+        [RequiredValidate]
+        public string Name { get; set; }
+
+        [EnumValidate]
+        public CardRarities Rarity { get; set; } = CardRarities.Common;
 
         [RequiredValidate]
         [EnumValidate]
         public CardTypes CardType { get; set; }
 
         [EnumValidate]
-        public CardRarities Rarity { get; set; } = CardRarities.Common;
+        public SpellTypes SpellType { get; set; } = SpellTypes.Normal;
 
-        [RequiredValidate]
-        public string Name { get; set; }
-
-        [EnumValidate]
-        public SpellTypes SpellType { get; set; }
-
-        public MonsterTypes[] MonsterType { get; set; }
+        public MonsterTypes[] MonsterType { get; set; } = new[] { MonsterTypes.Normal };
 
         public MonsterAttributes[] Attribute { get; set; }
 

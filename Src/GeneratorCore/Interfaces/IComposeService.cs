@@ -6,6 +6,6 @@ namespace GeneratorCore.Interfaces
 {
     public interface IComposeService : IService
     {
-        Task Write(ComposeDataDto input, string outputFilename);
+        Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig = null);
     }
 }
