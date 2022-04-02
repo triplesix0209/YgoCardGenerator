@@ -6,13 +6,19 @@ using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Dto
 {
-    public class ComposeDataDto : DataDto
+    public class CardDataDto : DataDto
     {
         [RequiredValidate]
-        public string Code { get; set; }
+        public int Id { get; set; }
+
+        public int? Alias { get; set; }
+
+        public string Set { get; set; }
 
         [RequiredValidate]
         public string Name { get; set; }
+
+        public CardLimits CardLimit { get; set; } = CardLimits.Custom;
 
         [EnumValidate]
         public CardRarities Rarity { get; set; } = CardRarities.Common;
@@ -62,6 +68,8 @@ namespace GeneratorCore.Dto
         public int? Def { get; set; }
 
         public PendulumSizes PendulumSize { get; set; } = PendulumSizes.Auto;
+
+        public string[] Strings { get; set; }
 
         public bool IsSpellTrap => CardType == CardTypes.Spell || CardType == CardTypes.Trap;
 

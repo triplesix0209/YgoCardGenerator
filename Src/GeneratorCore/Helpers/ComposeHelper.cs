@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -124,29 +123,6 @@ namespace GeneratorCore.Helpers
                 .Where(type => cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()))
                 .Select(type => EnumHelper.Parse<TEnum>(type.ToCamelCase()))
                 .ToArray();
-        }
-
-        public static TEnum[] MatchCardType<TEnum>(this string inputType)
-            where TEnum : Enum
-        {
-            return MatchCardType(inputType, (TEnum[])EnumHelper.GetValues(typeof(TEnum)));
-        }
-
-        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue, params TEnum[] cardTypes)
-            where TEnum : Enum
-        {
-            var inputTypes = inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            var result = inputTypes.FirstOrDefault(type =>
-                cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()));
-
-            if (result is null) return defaultValue;
-            return EnumHelper.Parse<TEnum>(result.ToCamelCase());
-        }
-
-        public static TEnum FirstMatchCardType<TEnum>(this string inputType, TEnum defaultValue)
-            where TEnum : Enum
-        {
-            return FirstMatchCardType(inputType, defaultValue, (TEnum[])EnumHelper.GetValues(typeof(TEnum)));
         }
     }
 }

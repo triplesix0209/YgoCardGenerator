@@ -6,8 +6,8 @@ namespace GeneratorCore.Interfaces
 {
     public interface IComposeService : IService
     {
-        Task Write(CardModelDto model, string outputPath, CardSetDto setConfig);
+        Task Compose(CardModelDto model, string outputPath, CardSetDto setConfig);
 
-        Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig);
+        Task Compose(CardDataDto data, string outputPath, CardSetDto setConfig);
     }
 }

@@ -11,142 +11,90 @@ using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Services
 {
-    public class ProxyComposeService : BaseComposeService
+    public class ProxyComposeService : ComposeService
     {
         public override string Template => "Proxy";
 
-        public override async Task Write(CardModelDto model, string outputPath, CardSetDto setConfig)
+        public override async Task Compose(CardDataDto data, string outputPath, CardSetDto setConfig)
         {
-            var input = new ComposeDataDto
+            await base.Compose(data, outputPath, setConfig);
+
+            using (var card = GenerateCard(data, setConfig))
             {
-                Code = model.Code,
-                Name = model.Name,
-                Rarity = model.Rarity,
-                CardType = model.Type.FirstMatchCardType(CardTypes.Monster, CardTypes.Spell, CardTypes.Trap),
-            };
+                await DrawCardType(card, data, setConfig);
+                await DrawArtwork(card, data, setConfig);
+                await DrawCardFrame(card, data, setConfig);
+                await DrawCardName(card, data, setConfig);
+                await DrawLinkArrow(card, data, setConfig);
 
-            input.ArtworkPath = Path.Join(model.BasePath, input.Code);
-            if (File.Exists(input.ArtworkPath + ".png"))
-                input.ArtworkPath += ".png";
-            else
-                input.ArtworkPath += ".jpg";
-
-            if (input.IsSpellTrap)
-            {
-                input.SpellType = model.Type.FirstMatchCardType(SpellTypes.Normal);
-                input.Effect = model.Effect?.Trim();
-            }
-            else
-            {
-                input.MonsterType = model.Type.MatchCardType<MonsterTypes>();
-                if (!input.MonsterType.Any()) input.MonsterType = new[] { MonsterTypes.Normal };
-                input.Attribute = model.Attribute.MatchCardType<MonsterAttributes>();
-                input.Race = model.Race.MatchCardType<MonsterRaces>();
-
-                input.LeftScale = model.LeftScale ?? model.Scale;
-                input.RightScale = model.RightScale ?? model.Scale;
-                if (input.IsMonsterType(MonsterTypes.Link))
-                    input.LinkRating = model.Link ?? model.Level;
-                else if (input.IsMonsterType(MonsterTypes.Xyz))
-                    input.Rank = model.Rank ?? model.Level;
-                else
-                    input.Level = model.Level;
-
-                input.Atk = model.Atk.IsNotNullOrWhiteSpace() && model.Atk.Trim() != "?" ? int.Parse(model.Atk) : null;
-                input.Def = model.Def.IsNotNullOrWhiteSpace() && model.Def.Trim() != "?" ? int.Parse(model.Def) : null;
-                input.Flavor = model.Flavor?.Trim();
-                input.Effect = model.Effect?.Trim();
-                input.PendulumEffect = model.PendulumEffect?.Trim();
-                input.PendulumSize = model.PendulumSize;
-            }
-
-            if (input.IsLink) input.LinkArrow = model.LinkArrow.MatchCardType<LinkArrows>();
-
-            var outputFilename = Path.Join(outputPath, input.Code + ".png");
-            await Write(input, outputFilename, setConfig);
-        }
-
-        public override async Task Write(ComposeDataDto input, string outputFilename, CardSetDto setConfig)
-        {
-            await base.Write(input, outputFilename, setConfig);
-
-            using (var card = GenerateCard(input, setConfig))
-            {
-                await DrawCardType(card, input, setConfig);
-                await DrawArtwork(card, input, setConfig);
-                await DrawCardFrame(card, input, setConfig);
-                await DrawCardName(card, input, setConfig);
-                await DrawLinkArrow(card, input, setConfig);
-
-                if (input.IsSpellTrap)
+                if (data.IsSpellTrap)
                 {
-                    await DrawSpellType(card, input, setConfig);
-                    await DrawSpellEffect(card, input, setConfig);
+                    await DrawSpellType(card, data, setConfig);
+                    await DrawSpellEffect(card, data, setConfig);
                 }
                 else
                 {
-                    await DrawMonsterAttribute(card, input, setConfig);
-                    await DrawMonsterLevelRankScaleRating(card, input, setConfig);
-                    await DrawMonsterType(card, input, setConfig);
-                    await DrawMonsterEffect(card, input, setConfig);
-                    await DrawMonsterAtkDef(card, input, setConfig);
+                    await DrawMonsterAttribute(card, data, setConfig);
+                    await DrawMonsterLevelRankScaleRating(card, data, setConfig);
+                    await DrawMonsterType(card, data, setConfig);
+                    await DrawMonsterEffect(card, data, setConfig);
+                    await DrawMonsterAtkDef(card, data, setConfig);
                 }
 
-                await card.WriteAsync(outputFilename);
+                await card.WriteAsync(Path.Combine(outputPath, data.Id + ".png"));
 
-                if (setConfig.DrawField && input.IsSpellTrap && input.IsSpellType(SpellTypes.Field))
+                if (setConfig.DrawField && data.IsSpellTrap && data.IsSpellType(SpellTypes.Field))
                 {
-                    var fieldPath = Path.GetDirectoryName(outputFilename);
-                    fieldPath = Path.Join(fieldPath, "field");
+                    var fieldPath = Path.Combine(outputPath, "field");
                     if (!Directory.Exists(fieldPath))
                         Directory.CreateDirectory(fieldPath);
 
                     using (var artwork = new MagickImage())
                     {
-                        await artwork.ReadAsync(input.ArtworkPath);
+                        await artwork.ReadAsync(data.ArtworkPath);
                         artwork.Resize(new MagickGeometry { Width = 512, Height = 512, FillArea = true, });
                         artwork.Crop(512, 512);
 
                         var field = new MagickImage(MagickColors.Transparent, 512, 512);
                         field.Composite(artwork, new PointD(0, 0), CompositeOperator.Over);
 
-                        await field.WriteAsync(Path.Join(fieldPath, input.Code + ".png"));
+                        await field.WriteAsync(Path.Combine(fieldPath, data.Id + ".png"));
                     }
                 }
             }
         }
 
-        protected PendulumSizes GetPendulumSize(ComposeDataDto input, CardSetDto setConfig)
+        protected PendulumSizes GetPendulumSize(CardDataDto data, CardSetDto setConfig)
         {
-            var result = input.PendulumSize;
+            var result = data.PendulumSize;
             if (result == PendulumSizes.Auto) result = PendulumSizes.Medium;
             return result;
         }
 
-        protected async Task DrawCardType(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawCardType(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            await card.DrawResource(input.IsSpellTrap
-                ? GetResource("card_type", input.CardType.ToString("D"))
-                : GetResource("card_type", input.MonsterPrimaryTypes.First().ToString("D")));
+            await card.DrawResource(data.IsSpellTrap
+                ? GetResource("card_type", data.CardType.ToString("D"))
+                : GetResource("card_type", data.MonsterPrimaryTypes.First().ToString("D")));
 
-            if (input.IsMonsterType(MonsterTypes.Pendulum))
+            if (data.IsMonsterType(MonsterTypes.Pendulum))
                 await card.DrawResource(GetResource("card_type", MonsterTypes.Pendulum.ToString("D")));
         }
 
-        protected async Task DrawArtwork(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawArtwork(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
             var location = new PointD(84, 187);
             var width = 526;
             var height = 526;
 
-            if (input.IsMonsterType(MonsterTypes.Pendulum))
+            if (data.IsMonsterType(MonsterTypes.Pendulum))
             {
                 location = new PointD(44, 182);
                 width = 605;
-                height = GetPendulumSize(input, setConfig) == PendulumSizes.Large ? 595 : 570;
+                height = GetPendulumSize(data, setConfig) == PendulumSizes.Large ? 595 : 570;
             }
 
-            if (input.ArtworkPath.IsNullOrWhiteSpace())
+            if (data.ArtworkPath.IsNullOrWhiteSpace())
             {
                 using (var artwork = new MagickImage(MagickColors.White, width, height))
                     card.Composite(artwork, location, CompositeOperator.Over);
@@ -155,7 +103,7 @@ namespace GeneratorCore.Services
             {
                 using (var artwork = new MagickImage())
                 {
-                    await artwork.ReadAsync(input.ArtworkPath);
+                    await artwork.ReadAsync(data.ArtworkPath);
                     artwork.Resize(new MagickGeometry { Width = width, Height = height, FillArea = true, });
                     artwork.Crop(width, height);
 
@@ -164,89 +112,89 @@ namespace GeneratorCore.Services
             }
         }
 
-        protected async Task DrawCardFrame(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawCardFrame(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
             string cardFrame;
-            if (input.IsMonsterType(MonsterTypes.Pendulum))
+            if (data.IsMonsterType(MonsterTypes.Pendulum))
             {
                 cardFrame = GetResource(
                     "card_frame",
-                    input.Rarity.ToString().ToKebabCase(),
-                    $"pendulum-{EnumHelper.GetName(GetPendulumSize(input, setConfig)).ToKebabCase()}");
+                    data.Rarity.ToString().ToKebabCase(),
+                    $"pendulum-{EnumHelper.GetName(GetPendulumSize(data, setConfig)).ToKebabCase()}");
             }
             else
             {
                 cardFrame = GetResource(
                     "card_frame",
-                    input.Rarity.ToString().ToKebabCase(),
+                    data.Rarity.ToString().ToKebabCase(),
                     "base");
             }
 
             await card.DrawResource(cardFrame);
         }
 
-        protected async Task DrawCardName(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawCardName(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
             var font = "Yu-Gi-Oh! Matrix Regular Small Caps 1";
             var size = 80;
             var location = new Point(50, 43);
             var maxWidth = 525;
-            var color = input.IsSpellTrap || input.IsMonsterType(MonsterTypes.Xyz, MonsterTypes.Link)
+            var color = data.IsSpellTrap || data.IsMonsterType(MonsterTypes.Xyz, MonsterTypes.Link)
                 ? MagickColors.White
                 : MagickColors.Black;
-            if (input.Rarity == CardRarities.Gold)
+            if (data.Rarity == CardRarities.Gold)
                 color = MagickColors.Gold;
 
-            await card.DrawTextLine(input.Name, location, font, size, color, maxWidth: maxWidth);
+            await card.DrawTextLine(data.Name, location, font, size, color, maxWidth: maxWidth);
         }
 
-        protected async Task DrawLinkArrow(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawLinkArrow(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            if (!input.IsLink) return;
+            if (!data.IsLink) return;
 
             foreach (var arrow in EnumHelper.GetValues<LinkArrows>())
             {
                 var arrowName = arrow.ToString("D");
-                if (input.IsMonsterType(MonsterTypes.Pendulum)) arrowName += "-pendulum";
-                arrowName += input.HasLinkArrow(arrow) ? "-on" : "-off";
+                if (data.IsMonsterType(MonsterTypes.Pendulum)) arrowName += "-pendulum";
+                arrowName += data.HasLinkArrow(arrow) ? "-on" : "-off";
 
-                await card.DrawResource(GetResource("link_arrow", input.Rarity.ToString().ToKebabCase(), arrowName));
+                await card.DrawResource(GetResource("link_arrow", data.Rarity.ToString().ToKebabCase(), arrowName));
             }
         }
 
-        protected async Task DrawSpellType(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawSpellType(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            if (input.SpellType == SpellTypes.Link)
+            if (data.SpellType == SpellTypes.Link)
                 return;
 
-            if (input.SpellType == SpellTypes.Normal)
+            if (data.SpellType == SpellTypes.Normal)
             {
-                var spellTypeText = GetResource("spelltrap_type", $"{input.CardType:D}_0");
+                var spellTypeText = GetResource("spelltrap_type", $"{data.CardType:D}_0");
                 await card.DrawResource(spellTypeText);
             }
             else
             {
-                var spellTypeText = GetResource("spelltrap_type", $"{input.CardType:D}_1");
-                var spellTypeIcon = GetResource("spelltrap_type", $"{input.SpellType:D}");
+                var spellTypeText = GetResource("spelltrap_type", $"{data.CardType:D}_1");
+                var spellTypeIcon = GetResource("spelltrap_type", $"{data.SpellType:D}");
                 await card.DrawResource(spellTypeText);
                 await card.DrawResource(spellTypeIcon);
             }
         }
 
-        protected async Task DrawSpellEffect(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawSpellEffect(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            if (input.Effect.IsNullOrWhiteSpace()) return;
+            if (data.Effect.IsNullOrWhiteSpace()) return;
 
             var target = new Rectangle(55, 765, 580, 185);
             var font = "Yu-Gi-Oh! Matrix Book";
 
-            await card.DrawTextAreaAsync(input.Effect, target, font);
+            await card.DrawTextAreaAsync(data.Effect, target, font);
         }
 
-        protected async Task DrawMonsterAttribute(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawMonsterAttribute(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            if (input.Attribute.IsNullOrEmpty()) return;
-            var attr = input.Attribute.First();
+            if (data.Attribute.IsNullOrEmpty()) return;
+            var attr = data.Attribute.First();
             if (attr == MonsterAttributes.None) return;
 
             var attribute = GetResource("attribute", attr.ToString("D"));
@@ -254,14 +202,14 @@ namespace GeneratorCore.Services
             await card.DrawResource(attribute);
         }
 
-        protected async Task DrawMonsterLevelRankScaleRating(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawMonsterLevelRankScaleRating(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            if (input.IsMonsterType(MonsterTypes.Pendulum))
+            if (data.IsMonsterType(MonsterTypes.Pendulum))
             {
                 var leftScaleLocation = new Point(55, 690);
                 var rightScaleLocation = new Point(610, 690);
 
-                switch (GetPendulumSize(input, setConfig))
+                switch (GetPendulumSize(data, setConfig))
                 {
                     case PendulumSizes.Small:
                     case PendulumSizes.Large:
@@ -273,67 +221,67 @@ namespace GeneratorCore.Services
                 var font = "Yu-Gi-Oh! Matrix Regular Small Caps 1";
                 var size = 54;
                 var width = 30;
-                var leftScale = input.LeftScale.HasValue ? input.LeftScale.ToString() : "?";
-                var rightScale = input.RightScale.HasValue ? input.RightScale.ToString() : "?";
+                var leftScale = data.LeftScale.HasValue ? data.LeftScale.ToString() : "?";
+                var rightScale = data.RightScale.HasValue ? data.RightScale.ToString() : "?";
 
                 await card.DrawTextLine(leftScale, leftScaleLocation, font, size, width: width, gravity: Gravity.North);
                 await card.DrawTextLine(rightScale, rightScaleLocation, font, size, width: width, gravity: Gravity.North);
             }
 
-            if (input.IsMonsterType(MonsterTypes.Link))
+            if (data.IsMonsterType(MonsterTypes.Link))
             {
                 var location = new Point(615, 923);
                 var font = "Eurostile Candy W01 Semibold";
                 var size = 28;
-                var linkRating = input.LinkRating.HasValue ? input.LinkRating.ToString() : "0";
+                var linkRating = data.LinkRating.HasValue ? data.LinkRating.ToString() : "0";
 
                 await card.DrawResource(GetResource("link_label"));
                 await card.DrawTextLine(linkRating, location, font, size);
                 return;
             }
 
-            if (input.IsMonsterType(MonsterTypes.Xyz))
+            if (data.IsMonsterType(MonsterTypes.Xyz))
             {
-                if (input.Rank is null || input.Rank == 0) return;
+                if (data.Rank is null || data.Rank == 0) return;
 
-                var rank = GetResource("level_rank", $"rnk{input.Rank:D}");
+                var rank = GetResource("level_rank", $"rnk{data.Rank:D}");
                 await card.DrawResource(rank);
                 return;
             }
 
-            if (input.Level.HasValue && input.Level > 0)
+            if (data.Level.HasValue && data.Level > 0)
             {
-                var level = GetResource("level_rank", $"lvl{input.Level:D}");
+                var level = GetResource("level_rank", $"lvl{data.Level:D}");
                 await card.DrawResource(level);
             }
         }
 
-        protected async Task DrawMonsterType(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawMonsterType(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
             var location = new Point(53, 760);
-            if (input.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(input, setConfig) == PendulumSizes.Large)
+            if (data.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(data, setConfig) == PendulumSizes.Large)
                 location = new Point(53, 785);
 
             var font = "Yu-Gi-Oh! ITC Stone Serif Small Caps Bold";
             var size = 24;
             var maxWidth = 590;
 
-            var races = input.Race.Select(x => EnumHelper.GetDescription(x));
+            var races = data.Race.Select(x => EnumHelper.GetDescription(x));
             var types = new List<string>();
-            var primaryTypes = input.MonsterPrimaryTypes.Where(x => new[] { MonsterTypes.Normal, MonsterTypes.Effect }.Contains(x) == false);
-            var secondaryTypes = input.MonsterSecondaryTypes.Where(x => new[] { MonsterTypes.Pendulum, MonsterTypes.Nomi }.Contains(x) == false);
+            var primaryTypes = data.MonsterPrimaryTypes.Where(x => new[] { MonsterTypes.Normal, MonsterTypes.Effect }.Contains(x) == false);
+            var secondaryTypes = data.MonsterSecondaryTypes.Where(x => new[] { MonsterTypes.Pendulum, MonsterTypes.Nomi }.Contains(x) == false);
 
             if (primaryTypes.Any())
                 types.AddRange(primaryTypes.Select(x => EnumHelper.GetDescription(x)));
-            if (input.IsMonsterType(MonsterTypes.Pendulum))
+            if (data.IsMonsterType(MonsterTypes.Pendulum))
                 types.Add(EnumHelper.GetDescription(MonsterTypes.Pendulum));
             if (secondaryTypes.Any())
                 types.AddRange(secondaryTypes.Select(x => EnumHelper.GetDescription(x)));
-            if (!input.IsMonsterType(MonsterTypes.Token))
+            if (!data.IsMonsterType(MonsterTypes.Token))
             {
-                if (input.IsMonsterType(MonsterTypes.Effect))
+                if (data.IsMonsterType(MonsterTypes.Effect))
                     types.Add(EnumHelper.GetDescription(MonsterTypes.Effect));
-                else if (input.IsMonsterType(MonsterTypes.Normal))
+                else if (data.IsMonsterType(MonsterTypes.Normal))
                     types.Add(EnumHelper.GetDescription(MonsterTypes.Normal));
             }
 
@@ -345,13 +293,13 @@ namespace GeneratorCore.Services
             await card.DrawTextLine(text, location, font, size, maxWidth: maxWidth);
         }
 
-        protected async Task DrawMonsterEffect(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawMonsterEffect(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
             Rectangle target;
 
-            if (input.IsMonsterType(MonsterTypes.Pendulum) && input.PendulumEffect.IsNotNullOrWhiteSpace())
+            if (data.IsMonsterType(MonsterTypes.Pendulum) && data.PendulumEffect.IsNotNullOrWhiteSpace())
             {
-                switch (GetPendulumSize(input, setConfig))
+                switch (GetPendulumSize(data, setConfig))
                 {
                     case PendulumSizes.Large:
                         target = new Rectangle(108, 640, 478, 135);
@@ -367,35 +315,35 @@ namespace GeneratorCore.Services
                 }
 
                 var font = "Yu-Gi-Oh! Matrix Book";
-                await card.DrawTextAreaAsync(input.PendulumEffect, target, font);
+                await card.DrawTextAreaAsync(data.PendulumEffect, target, font);
             }
 
-            var cardText = input.Effect.IsNotNullOrWhiteSpace() ? input.Effect : input.Flavor;
+            var cardText = data.Effect.IsNotNullOrWhiteSpace() ? data.Effect : data.Flavor;
             if (cardText.IsNotNullOrWhiteSpace())
             {
                 target = new Rectangle(55, 790, 580, 130);
-                if (input.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(input, setConfig) == PendulumSizes.Large)
+                if (data.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(data, setConfig) == PendulumSizes.Large)
                     target = new Rectangle(55, 815, 580, 105);
 
-                var font = (input.IsMonsterType(MonsterTypes.Normal) && input.Flavor.IsNotNullOrWhiteSpace())
+                var font = (data.IsMonsterType(MonsterTypes.Normal) && data.Flavor.IsNotNullOrWhiteSpace())
                         ? "Yu-Gi-Oh! ITC Stone Serif LT Italic"
                         : "Yu-Gi-Oh! Matrix Book";
                 await card.DrawTextAreaAsync(cardText, target, font);
             }
         }
 
-        protected async Task DrawMonsterAtkDef(MagickImage card, ComposeDataDto input, CardSetDto setConfig)
+        protected async Task DrawMonsterAtkDef(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
             var locationAtk = new Point(380, 927);
             var locationDef = new Point(525, 927);
             var font = "Matrix Bold Small Caps";
             var size = 30;
-            var atk = "ATK/" + (input.Atk.HasValue ? input.Atk.ToString() : "?").PadLeft(4);
-            var def = "DEF/" + (input.Def.HasValue ? input.Def.ToString() : "?").PadLeft(4);
+            var atk = "ATK/" + (data.Atk.HasValue ? data.Atk.ToString() : "?").PadLeft(4);
+            var def = "DEF/" + (data.Def.HasValue ? data.Def.ToString() : "?").PadLeft(4);
 
             await card.DrawResource(GetResource("atkdef_line"));
             await card.DrawTextLine(atk, locationAtk, font, size);
-            if (input.IsMonsterType(MonsterTypes.Link) == false)
+            if (data.IsMonsterType(MonsterTypes.Link) == false)
                 await card.DrawTextLine(def, locationDef, font, size);
         }
     }
