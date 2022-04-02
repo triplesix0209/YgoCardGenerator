@@ -87,7 +87,7 @@ namespace GeneratorCore.Helpers
             Rectangle targetArea,
             string fontFamily,
             IMagickColor<ushort> color = null,
-            double? maxFontSize = 20,
+            double? maxFontSize = 16,
             Gravity gravity = Gravity.Northwest,
             FontStyleType fontStyle = FontStyleType.Normal,
             double wordSpacing = 0)
