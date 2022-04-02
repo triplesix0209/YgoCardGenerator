@@ -18,8 +18,8 @@ namespace GeneratorCore.Services
     {
         public async Task Compile(string outputPath, CardSetDto setConfig)
         {
-            var cardFilename = Path.Combine(outputPath, setConfig.SetName + ".cdb");
-            File.Delete(cardFilename);
+            var dbFilename = Path.Combine(outputPath, setConfig.SetName + ".cdb");
+            if (File.Exists(dbFilename)) File.Delete(dbFilename);
 
             var outputScriptPath = Path.Combine(outputPath, "script");
             if (Directory.Exists(outputScriptPath)) Directory.Delete(outputScriptPath, true);
@@ -66,7 +66,7 @@ namespace GeneratorCore.Services
                     File.Copy(file, Path.Combine(outputScriptPath, Path.GetFileName(file)), true);
             }
 
-            File.Copy("cards.cdb", cardFilename, true);
+            File.Move("cards.cdb", dbFilename, true);
         }
 
         protected async Task CompileCard(DataContext db, CardSetDto setConfig, CardDataDto input)
