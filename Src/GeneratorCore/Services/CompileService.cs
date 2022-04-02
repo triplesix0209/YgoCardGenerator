@@ -22,8 +22,8 @@ namespace GeneratorCore.Services
             File.Delete(cardFilename);
 
             var outputScriptPath = Path.Combine(outputPath, "script");
-            if (!Directory.Exists(outputScriptPath))
-                Directory.CreateDirectory(outputScriptPath);
+            if (Directory.Exists(outputScriptPath)) Directory.Delete(outputScriptPath, true);
+            Directory.CreateDirectory(outputScriptPath);
 
             var db = new DataContext();
             await db.Database.EnsureCreatedAsync();
@@ -56,6 +56,14 @@ namespace GeneratorCore.Services
 
                     File.Copy(sourceScriptFilename, Path.Combine(outputScriptPath, $"c{model.Id}.lua"), true);
                 }
+            }
+
+            var utilityPath = Path.Combine(setConfig.BasePath, "utility");
+            if (Directory.Exists(utilityPath))
+            {
+                var files = Directory.GetFiles(utilityPath);
+                foreach (var file in files)
+                    File.Copy(file, Path.Combine(outputScriptPath, Path.GetFileName(file)), true);
             }
 
             File.Copy("cards.cdb", cardFilename, true);
