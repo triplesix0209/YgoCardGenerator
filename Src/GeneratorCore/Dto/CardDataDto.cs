@@ -18,6 +18,8 @@ namespace GeneratorCore.Dto
         [RequiredValidate]
         public string Name { get; set; }
 
+        public CardTemplates Template { get; set; } = CardTemplates.Proxy;
+
         public CardLimits CardLimit { get; set; } = CardLimits.Custom;
 
         [EnumValidate]

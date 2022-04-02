@@ -19,6 +19,8 @@ namespace GeneratorCore.Dto
 
         public string Name { get; set; }
 
+        public CardTemplates Template { get; set; } = CardTemplates.Proxy;
+
         public CardLimits CardLimit { get; set; } = CardLimits.Custom;
 
         public CardRarities Rarity { get; set; } = CardRarities.Common;
@@ -67,6 +69,7 @@ namespace GeneratorCore.Dto
                 Alias = Alias,
                 Set = Set,
                 Name = Name,
+                Template = Template,
                 CardLimit = CardLimit,
                 Rarity = Rarity,
                 CardType = Type.FirstMatchCardType(CardTypes.None),

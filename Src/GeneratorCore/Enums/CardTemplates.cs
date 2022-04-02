@@ -2,6 +2,7 @@
 {
     public enum CardTemplates
     {
-        Proxy = 0,
+        Artwork = 0,
+        Proxy = 1,
     }
 }

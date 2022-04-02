@@ -11,7 +11,7 @@ using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Services
 {
-    public class ProxyComposeService : ComposeService
+    public class ComposeProxyService : ComposeService
     {
         public override string Template => "Proxy";
 

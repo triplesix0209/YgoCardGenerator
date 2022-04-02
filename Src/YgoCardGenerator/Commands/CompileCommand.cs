@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Autofac;
 using GeneratorCore.Dto;
+using GeneratorCore.Enums;
 using GeneratorCore.Services;
 using Tomlyn;
 using YgoCardGenerator.Types;
@@ -37,6 +38,10 @@ namespace YgoCardGenerator.Commands
             var setConfig = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetPath));
             setConfig.BasePath = basePath;
 
+            var outputPicPath = Path.Combine(outputPath, "pics");
+            if (Directory.Exists(outputPicPath)) Directory.Delete(outputPicPath, true);
+            Directory.CreateDirectory(outputPicPath);
+
             if (setConfig is null || !setConfig.ComposeSilence)
                 Console.WriteLine($"Compile card...");
             await Container.Resolve<CompileService>()
@@ -54,8 +59,11 @@ namespace YgoCardGenerator.Commands
 
                     if (!setConfig.ComposeSilence)
                         Console.WriteLine($"Compose card: {model.Id}...");
-                    await Container.Resolve<ProxyComposeService>()
-                        .Compose(model, Path.Combine(outputPath, "pics"), setConfig);
+
+                    if (model.Template == CardTemplates.Artwork)
+                        await Container.Resolve<ComposeArtworkService>().Compose(model, outputPicPath, setConfig);
+                    else
+                        await Container.Resolve<ComposeProxyService>().Compose(model, outputPicPath, setConfig);
                 }
             }
         }
