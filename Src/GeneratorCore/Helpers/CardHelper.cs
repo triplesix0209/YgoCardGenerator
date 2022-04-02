@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Helpers
@@ -8,7 +9,7 @@ namespace GeneratorCore.Helpers
     public static class CardHelper
     {
         public static TEnum[] MatchCardType<TEnum>(this string inputType, params TEnum[] cardTypes)
-            where TEnum : Enum
+                    where TEnum : Enum
         {
             return inputType?.Split(" ", StringSplitOptions.RemoveEmptyEntries)
                 .Where(type => cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()))
@@ -39,13 +40,27 @@ namespace GeneratorCore.Helpers
             return FirstMatchCardType(inputType, defaultValue, (TEnum[])EnumHelper.GetValues(typeof(TEnum)));
         }
 
-        public static string ApplyMarco(this string text, Dictionary<string, string> marco)
+        public static string ApplyMarco(this string input, Dictionary<string, string> marco)
         {
-            if (text.IsNullOrWhiteSpace()) return null;
+            if (input.IsNullOrWhiteSpace()) return null;
 
-            var result = text;
+            var result = input;
             foreach (var item in marco)
-                result = result.Replace("{" + item.Key + "}", item.Value);
+            {
+                var regex = new Regex(@"\{" + item.Key + @"(\|[\w-"" ]+)*\}");
+                var matches = regex.Matches(result);
+                if (matches.Count == 0) continue;
+
+                foreach (Match match in matches)
+                {
+                    var args = match.Groups.Values.Skip(1)
+                        .Select(x => x.Value.IsNullOrWhiteSpace() ? null : x.Value[1..])
+                        .ToArray();
+                    var text = string.Format(item.Value, args);
+                    result = regex.Replace(result, text);
+                }
+            }
+
             return result;
         }
     }

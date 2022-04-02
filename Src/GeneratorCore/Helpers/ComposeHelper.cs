@@ -87,7 +87,6 @@ namespace GeneratorCore.Helpers
             Rectangle targetArea,
             string fontFamily,
             IMagickColor<ushort> color = null,
-            double? minFontSize = 8,
             double? maxFontSize = 20,
             Gravity gravity = Gravity.Northwest,
             FontStyleType fontStyle = FontStyleType.Normal,
@@ -97,7 +96,7 @@ namespace GeneratorCore.Helpers
 
             var settings = new MagickReadSettings()
             {
-                Defines = new CaptionReadDefines() { StartFontPointsize = minFontSize, MaxFontPointsize = maxFontSize },
+                Defines = new CaptionReadDefines() { StartFontPointsize = maxFontSize },
                 Font = GetFont(fontFamily),
                 Width = targetArea.Width,
                 Height = targetArea.Height,
@@ -116,13 +115,17 @@ namespace GeneratorCore.Helpers
             }
         }
 
-        public static TEnum[] MatchCardType<TEnum>(this string inputType, params TEnum[] cardTypes)
-            where TEnum : Enum
+        public static MagickImage DrawDebugBorder(this MagickImage context)
         {
-            return inputType.Split(" ", StringSplitOptions.RemoveEmptyEntries)
-                .Where(type => cardTypes.Any(cardType => cardType.ToString().ToKebabCase().ToLower() == type.ToKebabCase().ToLower()))
-                .Select(type => EnumHelper.Parse<TEnum>(type.ToCamelCase()))
-                .ToArray();
+            new Drawables()
+                .StrokeColor(MagickColors.Red)
+                .Line(0, 0, context.Width - 1, 0)
+                .Line(context.Width - 1, 0, context.Width - 1, context.Height - 1)
+                .Line(context.Width - 1, context.Height - 1, 0, context.Height - 1)
+                .Line(0, context.Height - 1, 0, 0)
+                .Draw(context);
+
+            return context;
         }
     }
 }
