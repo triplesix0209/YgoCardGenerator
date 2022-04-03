@@ -87,7 +87,6 @@ namespace GeneratorCore.Helpers
             Rectangle targetArea,
             string fontFamily,
             IMagickColor<ushort> color = null,
-            double? maxFontSize = 16,
             Gravity gravity = Gravity.Northwest,
             FontStyleType fontStyle = FontStyleType.Normal,
             double wordSpacing = 0)
@@ -96,7 +95,6 @@ namespace GeneratorCore.Helpers
 
             var settings = new MagickReadSettings()
             {
-                Defines = new CaptionReadDefines() { StartFontPointsize = maxFontSize },
                 Font = GetFont(fontFamily),
                 Width = targetArea.Width,
                 Height = targetArea.Height,
