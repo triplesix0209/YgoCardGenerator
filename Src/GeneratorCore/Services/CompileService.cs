@@ -30,6 +30,8 @@ namespace GeneratorCore.Services
             foreach (var packPath in setConfig.Packs)
             {
                 var fullPackPath = Path.Combine(setConfig.BasePath, packPath);
+                var scriptPath = Path.Combine(Path.GetDirectoryName(fullPackPath), "script");
+
                 var cards = Toml.ToModel(await File.ReadAllTextAsync(fullPackPath));
                 foreach (var card in cards.Values)
                 {
@@ -37,7 +39,7 @@ namespace GeneratorCore.Services
                     model.BasePath = Path.GetDirectoryName(fullPackPath);
                     await CompileCard(db, setConfig, model.ToDataDto());
 
-                    var sourceScriptFilename = Path.Combine(model.BasePath, "script", $"c{model.Id}.lua");
+                    var sourceScriptFilename = Path.Combine(scriptPath, $"c{model.Id}.lua");
                     if (!File.Exists(sourceScriptFilename))
                     {
                         if (!Directory.Exists(Path.GetDirectoryName(sourceScriptFilename)))
@@ -56,14 +58,10 @@ namespace GeneratorCore.Services
 
                     File.Copy(sourceScriptFilename, Path.Combine(outputScriptPath, $"c{model.Id}.lua"), true);
                 }
-            }
 
-            var utilityPath = Path.Combine(setConfig.BasePath, "utility");
-            if (Directory.Exists(utilityPath))
-            {
-                var files = Directory.GetFiles(utilityPath);
-                foreach (var file in files)
-                    File.Copy(file, Path.Combine(outputScriptPath, Path.GetFileName(file)), true);
+                var scriptFiles = Directory.GetFiles(scriptPath);
+                foreach (var scriptFile in scriptFiles)
+                    File.Copy(scriptFile, Path.Combine(outputScriptPath, Path.GetFileName(scriptFile)), true);
             }
 
             File.Move("cards.cdb", dbFilename, true);
