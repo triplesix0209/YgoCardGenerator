@@ -334,17 +334,26 @@ namespace GeneratorCore.Services
 
         protected async Task DrawMonsterAtkDef(MagickImage card, CardDataDto data, CardSetDto setConfig)
         {
-            var locationAtk = new Point(380, 927);
-            var locationDef = new Point(525, 927);
             var font = "Matrix Bold Small Caps";
             var size = 30;
-            var atk = "ATK/" + (data.Atk.HasValue ? data.Atk.ToString() : "?").PadLeft(4);
-            var def = "DEF/" + (data.Def.HasValue ? data.Def.ToString() : "?").PadLeft(4);
+            var locationAtk = new Point(445, 927);
+            var locationDef = new Point(580, 927);
+
+            var atk = data.Atk.HasValue ? data.Atk.ToString() : "?";
+            var def = data.Def.HasValue ? data.Def.ToString() : "?";
+            if (atk.Length < 4) locationAtk.X += 15 * (4 - atk.Length);
+            if (def.Length < 4) locationDef.X += 15 * (4 - def.Length);
+            if (atk == "?") locationAtk.Y -= 3;
+            if (def == "?") locationDef.Y -= 3;
 
             await card.DrawResource(GetResource("atkdef_line"));
+            await card.DrawTextLine("ATK/", new Point(380, 927), font, size);
             await card.DrawTextLine(atk, locationAtk, font, size);
             if (data.IsMonsterType(MonsterTypes.Link) == false)
+            {
+                await card.DrawTextLine("DEF/", new Point(520, 927), font, size);
                 await card.DrawTextLine(def, locationDef, font, size);
+            }
         }
     }
 }
