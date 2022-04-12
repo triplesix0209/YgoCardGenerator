@@ -44,7 +44,7 @@ namespace GeneratorCore.Dto
         public async Task<Dictionary<string, string>> LoadMarco(CardDataDto data)
         {
             var result = new Dictionary<string, string>();
-            result.Add("CARD_NAME", "\"" + data.Name + "\"");
+            result.Add("CARD_NAME", data.Name);
 
             if (Marcos.IsNotNullOrEmpty())
             {
