@@ -336,7 +336,7 @@ namespace GeneratorCore.Services
         {
             var font = "Matrix Bold Small Caps";
             var size = 30;
-            var locationAtk = new Point(445, 927);
+            var locationAtk = new Point(435, 927);
             var locationDef = new Point(580, 927);
 
             var atk = data.Atk.HasValue ? data.Atk.ToString() : "?";
@@ -347,7 +347,7 @@ namespace GeneratorCore.Services
             if (def == "?") locationDef.Y -= 3;
 
             await card.DrawResource(GetResource("atkdef_line"));
-            await card.DrawTextLine("ATK/", new Point(380, 927), font, size);
+            await card.DrawTextLine("ATK/", new Point(370, 927), font, size);
             await card.DrawTextLine(atk, locationAtk, font, size);
             if (data.IsMonsterType(MonsterTypes.Link) == false)
             {
