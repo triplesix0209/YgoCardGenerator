@@ -1,11 +1,8 @@
-﻿using System;
-using System.Drawing;
-using System.Linq;
+﻿using System.Drawing;
 using System.Reflection;
 using System.Threading.Tasks;
 using ImageMagick;
 using ImageMagick.Formats;
-using TripleSix.Core.Helpers;
 
 namespace GeneratorCore.Helpers
 {
@@ -87,23 +84,21 @@ namespace GeneratorCore.Helpers
             Rectangle targetArea,
             string fontFamily,
             IMagickColor<ushort> color = null,
-            Gravity gravity = Gravity.Northwest,
             FontStyleType fontStyle = FontStyleType.Normal,
-            double wordSpacing = 0)
+            Gravity gravity = Gravity.Northwest)
         {
             if (color is null) color = MagickColors.Black;
 
             var settings = new MagickReadSettings()
             {
-                Font = GetFont(fontFamily),
-                Width = targetArea.Width,
-                Height = targetArea.Height,
-                FillColor = color,
                 StrokeColor = MagickColors.None,
                 BackgroundColor = MagickColors.None,
-                TextGravity = gravity,
+                Width = targetArea.Width,
+                Height = targetArea.Height,
+                Font = GetFont(fontFamily),
+                FillColor = color,
                 FontStyle = fontStyle,
-                TextInterwordSpacing = wordSpacing,
+                TextGravity = gravity,
             };
 
             using (var caption = new MagickImage($"caption:{text}", settings))

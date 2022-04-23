@@ -321,9 +321,9 @@ namespace GeneratorCore.Services
             var cardText = data.Effect.IsNotNullOrWhiteSpace() ? data.Effect : data.Flavor;
             if (cardText.IsNotNullOrWhiteSpace())
             {
-                target = new Rectangle(55, 790, 580, 130);
+                target = new Rectangle(55, 788, 580, 140);
                 if (data.IsMonsterType(MonsterTypes.Pendulum) && GetPendulumSize(data, setConfig) == PendulumSizes.Large)
-                    target = new Rectangle(55, 815, 580, 105);
+                    target = new Rectangle(55, 813, 580, 115);
 
                 var font = (data.IsMonsterType(MonsterTypes.Normal) && data.Flavor.IsNotNullOrWhiteSpace())
                         ? "Yu-Gi-Oh! ITC Stone Serif LT Italic"

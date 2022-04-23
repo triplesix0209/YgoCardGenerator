@@ -39,7 +39,6 @@ namespace YgoCardGenerator.Commands
             setConfig.BasePath = basePath;
 
             var outputPicPath = Path.Combine(outputPath, "pics");
-            if (Directory.Exists(outputPicPath)) Directory.Delete(outputPicPath, true);
             Directory.CreateDirectory(outputPicPath);
 
             if (setConfig is null || !setConfig.ComposeSilence)
