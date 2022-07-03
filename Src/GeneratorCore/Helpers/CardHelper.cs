@@ -53,10 +53,11 @@ namespace GeneratorCore.Helpers
 
                 foreach (Match match in matches)
                 {
-                    var args = match.Groups.Values.Skip(1)
-                        .Select(x => x.Value.IsNullOrWhiteSpace() ? null : x.Value[1..])
-                        .ToArray();
-                    var text = string.Format(item.Value, args);
+                    var value = match.Groups.Values.First().Value;
+                    value = value[(2 + item.Key.Length)..];
+                    value = value.Substring(0, value.Length - 1);
+
+                    var text = string.Format(item.Value, value.Split("|"));
                     result = regex.Replace(result, text);
                 }
             }
