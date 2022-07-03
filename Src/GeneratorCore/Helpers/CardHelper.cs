@@ -55,7 +55,8 @@ namespace GeneratorCore.Helpers
                 {
                     var value = match.Groups.Values.First().Value;
                     value = value[(2 + item.Key.Length)..];
-                    value = value.Substring(0, value.Length - 1);
+                    if (value.IsNotNullOrWhiteSpace())
+                        value = value.Substring(0, value.Length - 1);
 
                     var text = string.Format(item.Value, value.Split("|"));
                     result = regex.Replace(result, text);
