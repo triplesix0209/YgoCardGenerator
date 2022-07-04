@@ -1,0 +1,8 @@
+﻿{
+  "profiles": {
+    "YgoCardGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "compile -set=\"D:\\Games\\EdoPro\\repositories\\triplesix\\index.toml\" -outout=\"D:\\Games\\EdoPro\\repositories\\triplesix\""
+    }
+  }
+}
