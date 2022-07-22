@@ -1,6 +1,6 @@
 ﻿namespace YgoCardGenerator.Types
 {
-    public class CardData : Dto<CardDataValidator>
+    public class CardDataDto : Dto<CardDataValidator>
     {
         public string? BasePath { get; set; }
 
@@ -88,7 +88,7 @@
         public bool HasLinkArrow(LinkArrows arrows) => IsLink && LinkArrow != null && LinkArrow.Any(x => x == arrows);
     }
 
-    public class CardDataValidator : AbstractValidator<CardData>
+    public class CardDataValidator : AbstractValidator<CardDataDto>
     {
         public CardDataValidator()
         {

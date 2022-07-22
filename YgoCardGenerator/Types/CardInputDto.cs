@@ -1,6 +1,6 @@
 ﻿namespace YgoCardGenerator.Types
 {
-    public class CardInput : Dto
+    public class CardInputDto : Dto
     {
         public string? BasePath { get; set; }
 
@@ -54,9 +54,9 @@
 
         public bool Compose { get; set; } = true;
 
-        public CardData ToCardData()
+        public CardDataDto ToCardDataDto()
         {
-            var result = new CardData
+            var result = new CardDataDto
             {
                 BasePath = BasePath,
                 Id = Id,

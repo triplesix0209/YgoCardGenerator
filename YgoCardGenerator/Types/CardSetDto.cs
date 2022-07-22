@@ -1,6 +1,6 @@
 ﻿namespace YgoCardGenerator.Types
 {
-    public class CardSet : Dto<CardSetValidator>
+    public class CardSetDto : Dto<CardSetValidator>
     {
         public string? BasePath { get; set; }
 
@@ -11,7 +11,7 @@
         public string[]? Packs { get; set; }
     }
 
-    public class CardSetValidator : AbstractValidator<CardSet>
+    public class CardSetValidator : AbstractValidator<CardSetDto>
     {
         public CardSetValidator()
         {
