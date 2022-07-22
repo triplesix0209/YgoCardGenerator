@@ -4,16 +4,19 @@ namespace YgoCardGenerator.Types
 {
     public abstract class Dto
     {
-        protected abstract IValidator Validator { get; }
+    }
 
+    public abstract class Dto<TValidator> : Dto
+        where TValidator : IValidator, new()
+    {
         public ValidationResult Validate()
         {
-            return Validator.Validate(ValidationContext<Dto>.CreateWithOptions(this, _ => { }));
+            return new TValidator().Validate(ValidationContext<Dto>.CreateWithOptions(this, _ => { }));
         }
 
         public void ValidateAndThrow()
         {
-            Validator.Validate(ValidationContext<Dto>.CreateWithOptions(this, options => options.ThrowOnFailures()));
+            new TValidator().Validate(ValidationContext<Dto>.CreateWithOptions(this, options => options.ThrowOnFailures()));
         }
     }
 }

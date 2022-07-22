@@ -19,6 +19,20 @@
             var cardSet = Toml.ToModel<CardSet>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename);
             cardSet.ValidateAndThrow();
+
+            // read card packs
+            foreach (var packPath in cardSet.Packs!)
+            {
+                var cardBasePath = Path.Combine(cardSet.BasePath!, packPath);
+                var inputs = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(cardBasePath, "pack.toml")));
+                foreach (var input in inputs.Values)
+                {
+                    var cardInput = Toml.ToModel<CardInput>(Toml.FromModel(input));
+                    cardInput.BasePath = cardBasePath;
+                    var cardData = cardInput.ToCardData();
+                    cardData.ValidateAndThrow();
+                }
+            }
         }
     }
 }
