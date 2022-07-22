@@ -16,7 +16,7 @@
         {
             var cardSetFilename = Arguments[0].Value();
             if (cardSetFilename.IsNullOrWhiteSpace() || !File.Exists(cardSetFilename))
-                throw new Exception("card set is not specify or not found.");
+                throw new Exception("cardset file is not specify or not found.");
 
             var cardSet = Toml.ToModel<CardSet>(await File.ReadAllTextAsync(cardSetFilename));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename);
