@@ -14,6 +14,7 @@
 
         public override async Task Do()
         {
+            // read card set
             var cardSetFilename = Arguments[0].Value();
             var cardSet = Toml.ToModel<CardSet>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename);
