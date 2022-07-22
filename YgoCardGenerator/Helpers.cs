@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 
 namespace YgoCardGenerator
 {
@@ -11,6 +12,11 @@ namespace YgoCardGenerator
                 .Select(x => x.Trim())
                 .Where(x => x.Length > 0);
             return string.Join("-", texts).ToLower();
+        }
+
+        public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? text)
+        {
+            return string.IsNullOrWhiteSpace(text);
         }
     }
 }
