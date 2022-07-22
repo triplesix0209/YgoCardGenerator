@@ -15,10 +15,7 @@
         public override async Task Do()
         {
             var cardSetFilename = Arguments[0].Value();
-            if (cardSetFilename.IsNullOrWhiteSpace() || !File.Exists(cardSetFilename))
-                throw new Exception("cardset file is not specify or not found.");
-
-            var cardSet = Toml.ToModel<CardSet>(await File.ReadAllTextAsync(cardSetFilename));
+            var cardSet = Toml.ToModel<CardSet>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename);
             cardSet.ValidateAndThrow();
         }
