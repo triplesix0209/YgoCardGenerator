@@ -9,14 +9,12 @@
 
         protected override CommandArgument[] ArgumentSchema => new CommandArgument[]
         {
-            new ("set") { Description = "path to card set to compile (TOML)" },
-            new ("output", "o") { Description = "output path" },
+            new ("set") { Description = "path card set filename to compile (TOML)" },
         };
 
         public override async Task Do()
         {
-            var setPath = Arguments[0].Value();
-            var outputPath = Arguments[0].Value();
+            var setFilename = Arguments[0].Value();
         }
     }
 }
