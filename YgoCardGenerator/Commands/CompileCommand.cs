@@ -17,13 +17,13 @@ namespace YgoCardGenerator.Commands
 
         public override async Task Do()
         {
-            // read card set
+            #region [read card data]
+
             var cardSetFilename = Arguments[0].Value();
             var cardSet = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename);
             cardSet.ValidateAndThrow();
 
-            // read card packs
             var cardPacks = new List<(string path, List<CardDataDto> cards)>();
             foreach (var packPath in cardSet.Packs!)
             {
@@ -44,6 +44,8 @@ namespace YgoCardGenerator.Commands
 
                 cardPacks.Add(cardPack);
             }
+
+            #endregion
 
             // prepare card db
             var db = new DataContext();
