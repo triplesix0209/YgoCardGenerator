@@ -2,8 +2,6 @@
 {
     public class CardInputDto : Dto
     {
-        public string? BasePath { get; set; }
-
         public int Id { get; set; }
 
         public int? Alias { get; set; }
@@ -54,11 +52,10 @@
 
         public bool Compose { get; set; } = true;
 
-        public CardDataDto ToCardDataDto()
+        public CardDataDto ToCardDataDto(string basePath)
         {
             var result = new CardDataDto
             {
-                BasePath = BasePath,
                 Id = Id,
                 Alias = Alias,
                 Set = Set,
@@ -70,7 +67,7 @@
                 Strings = Strings,
             };
 
-            result.ArtworkPath = Path.Combine(BasePath!, "artwork", result.Id.ToString());
+            result.ArtworkPath = Path.Combine(basePath, "artwork", result.Id.ToString());
             result.ArtworkPath += File.Exists(result.ArtworkPath + ".png") ? ".png" : ".jpg";
 
             if (result.IsSpellTrap)

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using YgoCardGenerator.Commands;
 
 namespace YgoCardGenerator
@@ -9,8 +10,13 @@ namespace YgoCardGenerator
         static async Task Main(string[] args)
         {
             var serviceCollection = new ServiceCollection();
-            var commandTypes = RegisterCommand(serviceCollection, args);
+            serviceCollection.AddLogging(builder =>
+            {
+                builder.SetMinimumLevel(LogLevel.Information)
+                    .AddConsole();
+            });
 
+            var commandTypes = RegisterCommand(serviceCollection, args);
             var commandType = commandTypes.FirstOrDefault(x => x.Name.ToLower() == args[0] + "command");
             if (commandType == null)
                 throw new ArgumentException($"command \"{args[0]}\" not found");
@@ -29,9 +35,11 @@ namespace YgoCardGenerator
 
             foreach (var commandType in commandTypes)
             {
-                #pragma warning disable CS8603 // Possible null reference return.
-                serviceCollection.AddSingleton(commandType, p => Activator.CreateInstance(commandType, new[] { args }));
-                #pragma warning restore CS8603 // Possible null reference return.
+                serviceCollection.AddSingleton(commandType, p => Activator.CreateInstance(commandType, new object[]
+                {
+                    args,
+                    p.GetRequiredService<ILogger<Program>>()
+                })!);
             }
 
             return commandTypes.ToArray();

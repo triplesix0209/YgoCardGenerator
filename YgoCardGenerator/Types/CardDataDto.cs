@@ -2,8 +2,6 @@
 {
     public class CardDataDto : Dto<CardDataValidator>
     {
-        public string? BasePath { get; set; }
-
         public string? ArtworkPath { get; set; }
 
         public int Id { get; set; }
@@ -92,9 +90,6 @@
     {
         public CardDataValidator()
         {
-            RuleFor(x => x.BasePath)
-                .NotEmpty();
-
             RuleFor(x => x.ArtworkPath)
                 .NotEmpty();
 
