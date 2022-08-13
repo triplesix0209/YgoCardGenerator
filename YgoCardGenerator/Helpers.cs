@@ -24,6 +24,11 @@ namespace YgoCardGenerator
             return string.IsNullOrWhiteSpace(text);
         }
 
+        public static bool IsNullOrEmpty<T>([NotNullWhen(false)] this IEnumerable<T>? list)
+        {
+            return list == null || !list.Any();
+        }
+
         public static TEnum[]? MatchEnum<TEnum>([NotNullWhen(false)] this string? input, params TEnum[] enumValues)
                     where TEnum : Enum
         {

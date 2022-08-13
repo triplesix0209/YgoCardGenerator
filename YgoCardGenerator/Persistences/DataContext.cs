@@ -8,9 +8,16 @@ namespace YgoCardGenerator.Persistences
 {
     public class DataContext : DbContext
     {
+        private string _dataSource;
+
         public DbSet<Data> Data { get; set; }
 
         public DbSet<Text> Text { get; set; }
+
+        public DataContext(string dataSource)
+        {
+            _dataSource = dataSource;
+        }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
@@ -19,7 +26,7 @@ namespace YgoCardGenerator.Persistences
             builder.UseSqlite(new SqliteConnectionStringBuilder
             {
                 Mode = SqliteOpenMode.ReadWriteCreate,
-                DataSource = "cards.cdb",
+                DataSource = _dataSource,
             }.ToString());
         }
     }

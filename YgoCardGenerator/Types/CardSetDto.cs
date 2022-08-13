@@ -32,7 +32,7 @@
                 .Must(field => field == null || field.All(item => !item.IsNullOrWhiteSpace()))
                 .WithMessage("Pack list cannot be empty");
             RuleFor(x => x.Packs)
-                .Must((model, field) => field == null || field.All(item => File.Exists(Path.Combine(model.BasePath!, item, "pack.toml"))))
+                .Must((model, field) => field == null || field.All(item => File.Exists(Path.Combine(model.BasePath!, item, CardSetConfig.CardIndexFileName))))
                 .WithMessage("Pack files (pack.toml) must be existed");
         }
     }
