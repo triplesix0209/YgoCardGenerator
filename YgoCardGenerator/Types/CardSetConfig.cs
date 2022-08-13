@@ -10,6 +10,7 @@ namespace YgoCardGenerator.Types
 
         public CardSetConfig(CardSetDto input)
         {
+            BasePath = input.BasePath!;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
 
@@ -24,17 +25,23 @@ namespace YgoCardGenerator.Types
             }
         }
 
+        public string BasePath { get; }
+
+        public string ScriptPath => Path.Combine(BasePath, "script");
+
+        public string PicPath => Path.Combine(BasePath, "pics");
+
         public Dictionary<string, long> SetCodes { get; }
 
         public Dictionary<string, string> Marcos { get; }
 
-        public async Task LoadMarco(string basePath, CardDataDto card)
+        public async Task LoadMarco(string path, CardDataDto card)
         {
             Marcos.Clear();
             Marcos.Add("CARD_NAME", card.Name!);
-            if (!File.Exists(Path.Combine(basePath, MarcoFileName))) return;
+            if (!File.Exists(Path.Combine(path, MarcoFileName))) return;
 
-            var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(basePath, MarcoFileName)));
+            var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(path, MarcoFileName)));
             foreach (var item in data)
             {
                 var marco = item.Value.ToString();
@@ -43,7 +50,11 @@ namespace YgoCardGenerator.Types
             }
 
             foreach (var item in data)
-                Marcos[item.Key] = ApplyMarco(Marcos[item.Key]);
+            {
+                var text = ApplyMarco(Marcos[item.Key]);
+                if (text.IsNullOrWhiteSpace()) continue;
+                Marcos[item.Key] = text;
+            }
         }
 
         public string? ApplyMarco([NotNullWhen(false)] string? input)

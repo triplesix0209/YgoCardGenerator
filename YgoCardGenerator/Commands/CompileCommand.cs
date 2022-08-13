@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
+using System.Drawing;
 using YgoCardGenerator.Persistences;
 using YgoCardGenerator.Persistences.Entities;
 
@@ -65,19 +67,41 @@ namespace YgoCardGenerator.Commands
 
             #region [compile card]
 
-            foreach (var pack in cardPacks)
+            foreach (var (path, cards) in cardPacks)
             {
-                foreach (var card in pack.cards)
+                foreach (var card in cards)
                 {
-                    await config.LoadMarco(pack.path, card);
-                    await WriteCardDb(db, config, card);
+                    await config.LoadMarco(path, card);
+                    await WriteCardDb(card, config, db);
+                    await GenerateCardArtwork(card, config);
                 }
             }
 
             #endregion
+
+            #region [remove unused file]
+
+            var unusedPics = Directory.GetFiles(config.PicPath).Where(filename =>
+            {
+                foreach (var (path, cards) in cardPacks)
+                {
+                    foreach (var card in cards)
+                    {
+                        if (filename == Path.Combine(config.PicPath, $"{card.Id}.jpg"))
+                            return false;
+                    }
+                }
+
+                return true;
+            });
+
+            foreach (var filename in unusedPics)
+                File.Delete(filename);
+
+            #endregion
         }
 
-        protected async Task WriteCardDb(DataContext db, CardSetConfig config, CardDataDto card)
+        protected async Task WriteCardDb(CardDataDto card, CardSetConfig config, DataContext db)
         {
             var data = new Data { Id = card.Id };
             var text = new Text { Id = card.Id };
@@ -202,6 +226,38 @@ namespace YgoCardGenerator.Commands
             if (await db.Text.AnyAsync(x => x.Id == card.Id)) db.Update(text);
             else db.Add(text);
             await db.SaveChangesAsync();
+        }
+    
+        protected async Task GenerateCardArtwork(CardDataDto card, CardSetConfig config)
+        {
+            var imageInfo = new SKImageInfo(694, 1013);
+            using var surface = SKSurface.Create(imageInfo);
+            var outputFilename = Path.Combine(config.PicPath, $"{card.Id}.jpg");
+            var canvas = surface.Canvas;
+
+            if (card.Template == CardTemplates.Artwork)
+            {
+                using var paint = new SKPaint();
+                {
+                    paint.IsAntialias = true;
+                    paint.FilterQuality = SKFilterQuality.High;
+
+                    var artworkImage = SKImage.FromEncodedData(await File.ReadAllBytesAsync(card.ArtworkPath!));
+                    canvas.DrawImage(artworkImage, new SKRectI(0, 0, imageInfo.Width, imageInfo.Height), paint);
+                    await SaveImage(surface, outputFilename);
+                    return;
+                }
+            }
+        }
+
+        protected async Task SaveImage(SKSurface surface, string fileName)
+        {
+            using var image = surface.Snapshot();
+            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
+            using var stream = new MemoryStream(data.ToArray());
+            using var file = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+
+            await stream.CopyToAsync(file);
         }
     }
 }
