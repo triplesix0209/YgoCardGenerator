@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
-using System.Drawing;
+using System.Text;
 using YgoCardGenerator.Persistences;
 using YgoCardGenerator.Persistences.Entities;
 
@@ -58,8 +58,10 @@ namespace YgoCardGenerator.Commands
 
             #endregion
 
-            #region [prepare card db]
+            #region [prepare folder & carddb]
 
+            if (!Directory.Exists(config.ScriptPath)) Directory.CreateDirectory(config.ScriptPath);
+            if (!Directory.Exists(config.PicPath)) Directory.CreateDirectory(config.PicPath);
             using var db = new DataContext(Path.Combine(cardSet.BasePath, $"{cardSet.SetName}.cdb"));
             await db.Database.EnsureCreatedAsync();
 
@@ -67,12 +69,20 @@ namespace YgoCardGenerator.Commands
 
             #region [compile card]
 
+            foreach (var filename in Directory.GetFiles(config.UtilityDirectory))
+            {
+                using var inputFile = new FileStream(filename, FileMode.Open, FileAccess.Read);
+                using var outputFile = new FileStream(Path.Combine(config.ScriptPath, Path.GetFileName(filename)), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                await inputFile.CopyToAsync(outputFile);
+            }
+
             foreach (var (path, cards) in cardPacks)
             {
                 foreach (var card in cards)
                 {
                     await config.LoadMarco(path, card);
                     await WriteCardDb(card, config, db);
+                    await GenerateCardScript(card, config);
                     await GenerateCardArtwork(card, config);
                 }
             }
@@ -81,22 +91,25 @@ namespace YgoCardGenerator.Commands
 
             #region [remove unused file]
 
+            var utilScripts = Directory.GetFiles(config.UtilityDirectory);
+            var unusedScripts = Directory.GetFiles(config.ScriptPath).Where(filename =>
+            {
+                foreach (var (path, cards) in cardPacks)
+                foreach (var card in cards)
+                    if (filename == Path.Combine(config.ScriptPath, $"c{card.Id}.lua")) return false;
+                return utilScripts.Contains(filename);
+            });
+
             var unusedPics = Directory.GetFiles(config.PicPath).Where(filename =>
             {
                 foreach (var (path, cards) in cardPacks)
-                {
                     foreach (var card in cards)
-                    {
-                        if (filename == Path.Combine(config.PicPath, $"{card.Id}.jpg"))
-                            return false;
-                    }
-                }
-
+                        if (filename == Path.Combine(config.PicPath, $"{card.Id}.jpg")) return false;
                 return true;
             });
 
-            foreach (var filename in unusedPics)
-                File.Delete(filename);
+            foreach (var filename in unusedScripts) File.Delete(filename);
+            foreach (var filename in unusedPics) File.Delete(filename);
 
             #endregion
         }
@@ -228,6 +241,29 @@ namespace YgoCardGenerator.Commands
             await db.SaveChangesAsync();
         }
     
+        protected async Task GenerateCardScript(CardDataDto card, CardSetConfig config)
+        {
+            if (!File.Exists(card.ScriptPath))
+            {
+                var scripts = new[]
+                {
+                    $"-- {card.Name}",
+                    "Duel.LoadScript(\"util.lua\")",
+                    "",
+                    "local s, id = GetID()",
+                    "",
+                    "function s.initial_effect(c)",
+                    "    ",
+                    "end",
+                };
+                await File.WriteAllLinesAsync(card.ScriptPath!, scripts, Encoding.UTF8);
+            }
+
+            using var inputFile = new FileStream(card.ScriptPath!, FileMode.Open, FileAccess.Read);
+            using var outputFile = new FileStream(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            await inputFile.CopyToAsync(outputFile);
+        }
+
         protected async Task GenerateCardArtwork(CardDataDto card, CardSetConfig config)
         {
             var imageInfo = new SKImageInfo(694, 1013);
@@ -250,12 +286,12 @@ namespace YgoCardGenerator.Commands
             }
         }
 
-        protected async Task SaveImage(SKSurface surface, string fileName)
+        protected async Task SaveImage(SKSurface surface, string filename)
         {
             using var image = surface.Snapshot();
             using var data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
             using var stream = new MemoryStream(data.ToArray());
-            using var file = new FileStream(fileName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            using var file = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 
             await stream.CopyToAsync(file);
         }

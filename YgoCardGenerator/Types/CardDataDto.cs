@@ -4,6 +4,8 @@
     {
         public string? ArtworkPath { get; set; }
 
+        public string? ScriptPath { get; set; }
+
         public int Id { get; set; }
 
         public int? Alias { get; set; }
@@ -91,6 +93,9 @@
         public CardDataValidator()
         {
             RuleFor(x => x.ArtworkPath)
+                .NotEmpty();
+
+            RuleFor(x => x.ScriptPath)
                 .NotEmpty();
 
             RuleFor(x => x.Id)

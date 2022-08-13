@@ -31,6 +31,8 @@ namespace YgoCardGenerator.Types
 
         public string PicPath => Path.Combine(BasePath, "pics");
 
+        public string UtilityDirectory => Path.Combine(BasePath, "utility");
+
         public Dictionary<string, long> SetCodes { get; }
 
         public Dictionary<string, string> Marcos { get; }

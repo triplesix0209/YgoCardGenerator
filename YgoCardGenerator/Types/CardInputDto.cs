@@ -67,6 +67,7 @@
                 Strings = Strings,
             };
 
+            result.ScriptPath = Path.Combine(basePath, "script", $"c{result.Id}.lua");
             result.ArtworkPath = Path.Combine(basePath, "artwork", result.Id.ToString());
             result.ArtworkPath += File.Exists(result.ArtworkPath + ".png") ? ".png" : ".jpg";
 
