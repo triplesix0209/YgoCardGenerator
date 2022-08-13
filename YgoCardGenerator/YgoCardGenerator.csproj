@@ -9,14 +9,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.1.0" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="11.3.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.7" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.7" />
+    <EmbeddedResource Include="Resources\Proxy\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.8" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-    <PackageReference Include="SkiaSharp" Version="2.88.0" />
-    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.0" />
+    <PackageReference Include="SkiaSharp" Version="2.88.1-preview.108" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.88.1-preview.108" />
     <PackageReference Include="Tomlyn" Version="0.15.0" />
+    <PackageReference Include="Topten.RichTextKit" Version="0.4.151" />
   </ItemGroup>
+  
 </Project>

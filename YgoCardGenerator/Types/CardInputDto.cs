@@ -70,7 +70,7 @@
             result.ScriptPath = Path.Combine(basePath, "script", $"c{result.Id}.lua");
             result.ArtworkPath = Path.Combine(basePath, "artwork", result.Id.ToString());
             result.ArtworkPath += File.Exists(result.ArtworkPath + ".png") ? ".png" : ".jpg";
-
+            
             if (result.IsSpellTrap)
             {
                 result.SpellType = Type.FirstMatchEnum<SpellTypes>() ?? SpellTypes.Normal;
@@ -92,9 +92,6 @@
                 result.LeftScale = LeftScale ?? Scale;
                 result.RightScale = RightScale ?? Scale;
 
-                if (result.IsLink)
-                    result.LinkArrow = LinkArrow.MatchEnum<LinkArrows>();
-
                 result.Atk = !Atk.IsNullOrWhiteSpace() && Atk.Trim() != "?" ? int.Parse(Atk) : null;
                 result.Def = !Def.IsNullOrWhiteSpace() && Def.Trim() != "?" ? int.Parse(Def) : null;
                 result.Flavor = Flavor?.Trim();
@@ -102,6 +99,9 @@
                 result.PendulumEffect = PendulumEffect?.Trim();
                 result.PendulumSize = PendulumSize;
             }
+
+            if (result.IsLink)
+                result.LinkArrow = LinkArrow.MatchEnum<LinkArrows>();
 
             return result;
         }

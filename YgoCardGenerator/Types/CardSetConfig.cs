@@ -31,7 +31,13 @@ namespace YgoCardGenerator.Types
 
         public string PicPath => Path.Combine(BasePath, "pics");
 
+        public string PicFieldPath => Path.Combine(BasePath, "pics", "field");
+
         public string UtilityDirectory => Path.Combine(BasePath, "utility");
+
+        public int CardWidth => 694;
+
+        public int CardHeight => 1013;
 
         public Dictionary<string, long> SetCodes { get; }
 

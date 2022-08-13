@@ -18,6 +18,11 @@ namespace YgoCardGenerator
         {
             return string.Join("-", SplitCase(text)).ToLower();
         }
+        
+        public static string ToSnakeSpaceCase(this string text)
+        {
+            return string.Join("_", SplitCase(text)).ToLower();
+        }
 
         public static bool IsNullOrWhiteSpace([NotNullWhen(false)] this string? text)
         {
@@ -36,7 +41,7 @@ namespace YgoCardGenerator
             var inputValues = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             return enumValues
-                .Where(enumValue => inputValues.Any(value => value.Equals(enumValue.ToString(), StringComparison.CurrentCultureIgnoreCase)))
+                .Where(enumValue => inputValues.Any(value => value.Equals(enumValue.ToString().ToKebabCase(), StringComparison.CurrentCultureIgnoreCase)))
                 .ToArray();
         }
 
@@ -53,9 +58,10 @@ namespace YgoCardGenerator
             var inputValues = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var inputValue in inputValues)
+            foreach (var enumValue in enumValues)
             {
-                var enumValue = enumValues.FirstOrDefault(x => x.ToString()!.Equals(inputValue, StringComparison.CurrentCultureIgnoreCase));
-                if (enumValue != null) return enumValue;
+                if (inputValue.Equals(enumValue.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                    return enumValue;
             }
 
             return default;
