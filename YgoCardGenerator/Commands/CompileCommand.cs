@@ -77,7 +77,8 @@ namespace YgoCardGenerator.Commands
             foreach (var filename in Directory.GetFiles(config.UtilityDirectory))
             {
                 using var inputFile = File.OpenRead(filename);
-                using var outputFile = new FileStream(Path.Combine(config.ScriptPath, Path.GetFileName(filename)), FileMode.Truncate, FileAccess.ReadWrite);
+                using var outputFile = new FileStream(Path.Combine(config.ScriptPath, Path.GetFileName(filename)), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                outputFile.SetLength(0);
                 await inputFile.CopyToAsync(outputFile);
             }
 
@@ -275,7 +276,8 @@ namespace YgoCardGenerator.Commands
             }
 
             using var inputFile = File.OpenRead(card.ScriptPath!);
-            using var outputFile = File.Open(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.Truncate, FileAccess.ReadWrite);
+            using var outputFile = File.Open(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            outputFile.SetLength(0);
             await inputFile.CopyToAsync(outputFile);
         }
 
