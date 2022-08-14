@@ -88,6 +88,10 @@ namespace YgoCardGenerator.Commands
                     Logger.LogInformation($"Complete card {card.Id}...");
 
                     await config.LoadMarco(path, card);
+                    card.Flavor = config.ApplyMarco(card.Flavor);
+                    card.Effect = config.ApplyMarco(card.Effect);
+                    card.PendulumEffect = config.ApplyMarco(card.PendulumEffect);
+
                     await WriteCardDb(card, config, db);
                     await GenerateCardScript(card, config);
                     await GenerateCardImage(card, config);
@@ -211,28 +215,24 @@ namespace YgoCardGenerator.Commands
             {
                 if (card.IsMonsterType(MonsterTypes.Pendulum))
                 {
-                    var pendulumEffect = config.ApplyMarco(card.PendulumEffect);
-                    var monsterEffect = config.ApplyMarco(card.Effect);
-                    var flavorText = config.ApplyMarco(card.Flavor);
-
-                    if (pendulumEffect.IsNullOrWhiteSpace())
+                    if (card.PendulumEffect.IsNullOrWhiteSpace())
                     {
-                        text.Desc = monsterEffect ?? flavorText;
+                        text.Desc = card.Effect ?? card.Flavor;
                     }
                     else
                     {
-                        text.Desc = "[ Pendulum Effect ]\n" + pendulumEffect + "\n";
-                        if (!monsterEffect.IsNullOrWhiteSpace())
+                        text.Desc = "[ Pendulum Effect ]\n" + card.PendulumEffect + "\n";
+                        if (!card.Effect.IsNullOrWhiteSpace())
                         {
                             text.Desc += "----------------------------------------\n"
                                 + "[ Monster Effect ]\n"
-                                + monsterEffect;
+                                + card.Effect;
                         }
                         else
                         {
                             text.Desc += "----------------------------------------\n"
                                 + "[ Flavor Text ]\n"
-                                + flavorText;
+                                + card.Flavor;
                         }
                     }
                 }
