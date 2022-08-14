@@ -70,6 +70,10 @@ namespace YgoCardGenerator.Commands
             using var db = new DataContext(Path.Combine(cardSet.BasePath, $"{cardSet.SetName}.cdb"));
             await db.Database.EnsureCreatedAsync();
 
+            db.Data.RemoveRange(db.Data);
+            db.Text.RemoveRange(db.Text);
+            await db.SaveChangesAsync();
+            
             #endregion
 
             #region [compile card]
@@ -106,7 +110,7 @@ namespace YgoCardGenerator.Commands
                 foreach (var (path, cards) in cardPacks)
                     foreach (var card in cards)
                         if (filename == Path.Combine(config.ScriptPath, $"c{card.Id}.lua")) return false;
-                return utilScripts.Contains(filename);
+                return !utilScripts.Contains(filename);
             });
 
             var unusedPics = Directory.GetFiles(config.PicPath).Where(filename =>
