@@ -359,7 +359,7 @@ namespace YgoCardGenerator.Commands
             using var sourceBitmap = SKBitmap.Decode(await File.ReadAllBytesAsync(card.ArtworkPath!));
             if (!card.IsMonsterType(MonsterTypes.Pendulum))
             {
-                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(Math.Min(528, sourceBitmap.Width), Math.Min(528, sourceBitmap.Height)), SKFilterQuality.High);
+                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(528, 528), SKFilterQuality.High);
                 using var scaledImage = SKImage.FromBitmap(scaledBitmap);
                 canvas.DrawImage(scaledImage, 83, 186, paint);
             }
@@ -370,7 +370,7 @@ namespace YgoCardGenerator.Commands
                 var width = 605;
                 var height = card.PendulumSize == PendulumSizes.Small ? 486 : 449;
 
-                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(Math.Min(width, sourceBitmap.Width), sourceBitmap.Height), SKFilterQuality.High);
+                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(width, sourceBitmap.Height), SKFilterQuality.High);
                 using var scaledImage = SKImage.FromBitmap(scaledBitmap);
                 using var cropSurface = SKSurface.Create(new SKImageInfo(width, height));
                 using var cropCanvas = cropSurface.Canvas;
