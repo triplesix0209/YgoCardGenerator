@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text.RegularExpressions;
 
 namespace YgoCardGenerator
@@ -71,6 +73,19 @@ namespace YgoCardGenerator
            where TEnum : struct, Enum
         {
             return FirstMatchEnum(input, Enum.GetValues<TEnum>());
+        }
+
+        public static string? GetEnumDescription(Type enumType, object value)
+        {
+            var valueName = value.ToString();
+            if (valueName is null) return null;
+            valueName = Enum.Parse(enumType, valueName).ToString();
+            if (valueName is null) return null;
+            var memberInfo = enumType.GetMember(valueName).FirstOrDefault();
+            if (memberInfo is null) return null;
+
+            var attrDesc = memberInfo.GetCustomAttribute<DescriptionAttribute>();
+            return attrDesc is null ? valueName : attrDesc.Description;
         }
 
         private static string[] SplitCase(string text)

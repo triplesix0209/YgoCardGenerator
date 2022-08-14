@@ -584,35 +584,36 @@ namespace YgoCardGenerator.Commands
             paint.TextSize = 25;
             paint.Color = SKColors.Black;
 
-            var monsterTypes = new List<string>();
+            var monsterTypes = new List<Enum>();
             if (!card.Race.IsNullOrEmpty())
             {
                 foreach (var race in card.Race)
-                    monsterTypes.Add(race.ToString());
+                    monsterTypes.Add(race);
             }
             if (!card.MonsterPrimaryTypes.IsNullOrEmpty() && card.MonsterPrimaryTypes.Any(x => x != MonsterTypes.Effect && x != MonsterTypes.Normal))
             {
                 foreach (var type in card.MonsterPrimaryTypes)
                 {
                     if (type == MonsterTypes.Effect || type == MonsterTypes.Normal) continue;
-                    monsterTypes.Add(type.ToString());
+                    monsterTypes.Add(type);
                 }
             }
             if (!card.MonsterSecondaryTypes.IsNullOrEmpty())
             {
                 if (card.IsMonsterType(MonsterTypes.Pendulum))
-                    monsterTypes.Add(MonsterTypes.Pendulum.ToString());
+                    monsterTypes.Add(MonsterTypes.Pendulum);
                 foreach (var type in card.MonsterSecondaryTypes)
                 {
                     if (type == MonsterTypes.Pendulum) continue;
-                    monsterTypes.Add(type.ToString());
+                    monsterTypes.Add(type);
                 }
             }
             if (card.IsMonsterType(MonsterTypes.Effect))
-                monsterTypes.Add(MonsterTypes.Effect.ToString());
+                monsterTypes.Add(MonsterTypes.Effect);
             else if (card.IsMonsterType(MonsterTypes.Normal))
-                monsterTypes.Add(MonsterTypes.Normal.ToString());
-            var monsterTypeText = $"[{string.Join("/", monsterTypes)}]";
+                monsterTypes.Add(MonsterTypes.Normal);
+
+            var monsterTypeText = $"[{string.Join("/", monsterTypes.Select(x => Helpers.GetEnumDescription(x.GetType(), x) ))}]";
 
             var top = 785;
             if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Large)
