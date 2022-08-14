@@ -419,9 +419,9 @@ namespace YgoCardGenerator.Commands
             {
                 if (card.Rarity == CardRarities.Gold)
                 {
-                    paint.Color = SKColors.DarkGoldenrod;
+                    paint.Color = new SKColor(231, 229, 228);
                     canvas.DrawText(card.Name, 50, 100, paint);
-                    paint.Color = SKColors.Gold;
+                    paint.Color = new SKColor(117, 96, 5);
                     canvas.DrawText(card.Name, 48, 98, paint);
                 }
                 else
@@ -440,9 +440,9 @@ namespace YgoCardGenerator.Commands
             {
                 if (card.Rarity == CardRarities.Gold)
                 {
-                    paint.Color = SKColors.DarkGoldenrod;
+                    paint.Color = new SKColor(231, 229, 228);
                     textCanvas.DrawText(card.Name, 2, 2, paint);
-                    paint.Color = SKColors.Gold;
+                    paint.Color = new SKColor(117, 96, 5);
                     textCanvas.DrawText(card.Name, 0, 0, paint);
                 }
                 else
@@ -536,7 +536,7 @@ namespace YgoCardGenerator.Commands
                 using var image = GetResourceImage("level_rank", $"rnk{card.Rank}");
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
             }
-            else if (card.Level.HasValue)
+            else if (card.Level.HasValue && card.Level > 0)
             {
                 using var image = GetResourceImage("level_rank", $"lvl{card.Level}");
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
