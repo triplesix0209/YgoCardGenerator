@@ -276,7 +276,7 @@ namespace YgoCardGenerator.Commands
             }
 
             using var inputFile = new FileStream(card.ScriptPath!, FileMode.Open, FileAccess.Read);
-            using var outputFile = new FileStream(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            using var outputFile = new FileStream(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.Create, FileAccess.ReadWrite);
             await inputFile.CopyToAsync(outputFile);
         }
 
