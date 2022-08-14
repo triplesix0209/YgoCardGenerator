@@ -76,8 +76,8 @@ namespace YgoCardGenerator.Commands
 
             foreach (var filename in Directory.GetFiles(config.UtilityDirectory))
             {
-                using var inputFile = new FileStream(filename, FileMode.Open, FileAccess.Read);
-                using var outputFile = new FileStream(Path.Combine(config.ScriptPath, Path.GetFileName(filename)), FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                using var inputFile = File.OpenRead(filename);
+                using var outputFile = new FileStream(Path.Combine(config.ScriptPath, Path.GetFileName(filename)), FileMode.Truncate, FileAccess.ReadWrite);
                 await inputFile.CopyToAsync(outputFile);
             }
 
@@ -275,7 +275,9 @@ namespace YgoCardGenerator.Commands
                 await File.WriteAllLinesAsync(card.ScriptPath!, scripts);
             }
 
-            File.Copy(card.ScriptPath!, Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), true);
+            using var inputFile = File.OpenRead(card.ScriptPath!);
+            using var outputFile = File.Open(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.Truncate, FileAccess.ReadWrite);
+            await inputFile.CopyToAsync(outputFile);
         }
 
         protected async Task GenerateCardImage(CardDataDto card, CardSetConfig config)
