@@ -272,12 +272,10 @@ namespace YgoCardGenerator.Commands
                     "    ",
                     "end",
                 };
-                await File.WriteAllLinesAsync(card.ScriptPath!, scripts, Encoding.UTF8);
+                await File.WriteAllLinesAsync(card.ScriptPath!, scripts);
             }
 
-            using var inputFile = new FileStream(card.ScriptPath!, FileMode.Open, FileAccess.Read);
-            using var outputFile = new FileStream(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.Create, FileAccess.ReadWrite);
-            await inputFile.CopyToAsync(outputFile);
+            File.Copy(card.ScriptPath!, Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), true);
         }
 
         protected async Task GenerateCardImage(CardDataDto card, CardSetConfig config)
