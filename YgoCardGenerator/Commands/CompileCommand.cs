@@ -92,6 +92,8 @@ namespace YgoCardGenerator.Commands
                     card.Flavor = config.ApplyMarco(card.Flavor);
                     card.Effect = config.ApplyMarco(card.Effect);
                     card.PendulumEffect = config.ApplyMarco(card.PendulumEffect);
+                    if (!card.Strings.IsNullOrEmpty())
+                        card.Strings = card.Strings.Select(str => config.ApplyMarco(str)).ToArray()!;
 
                     await WriteCardDb(card, config, db);
                     await GenerateCardScript(card, config);
