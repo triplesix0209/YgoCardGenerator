@@ -69,11 +69,7 @@ namespace YgoCardGenerator.Commands
             if (!Directory.Exists(config.PicFieldPath)) Directory.CreateDirectory(config.PicFieldPath);
             using var db = new DataContext(Path.Combine(cardSet.BasePath, $"{cardSet.SetName}.cdb"));
             await db.Database.EnsureCreatedAsync();
-
-            db.Data.RemoveRange(db.Data);
-            db.Text.RemoveRange(db.Text);
-            await db.SaveChangesAsync();
-            
+                        
             #endregion
 
             #region [compile card]
@@ -102,7 +98,12 @@ namespace YgoCardGenerator.Commands
 
             #endregion
 
-            #region [remove unused file]
+            #region [remove unused]
+
+            var cardIds = cardPacks.SelectMany(x => x.cards.Select(y => y.Id));
+            db.Data.RemoveRange(db.Data.Where(x => !cardIds.Contains(x.Id.Value)));
+            db.Text.RemoveRange(db.Text.Where(x => !cardIds.Contains(x.Id.Value)));
+            await db.SaveChangesAsync();
 
             var utilScripts = Directory.GetFiles(config.UtilityDirectory);
             var unusedScripts = Directory.GetFiles(config.ScriptPath).Where(filename =>
