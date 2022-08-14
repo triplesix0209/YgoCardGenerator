@@ -110,7 +110,7 @@ namespace YgoCardGenerator.Commands
                 foreach (var (path, cards) in cardPacks)
                     foreach (var card in cards)
                         if (filename == Path.Combine(config.ScriptPath, $"c{card.Id}.lua")) return false;
-                return !utilScripts.Contains(filename);
+                return !utilScripts.Any(x => Path.GetFileName(x) == Path.GetFileName(filename));
             });
 
             var unusedPics = Directory.GetFiles(config.PicPath).Where(filename =>
