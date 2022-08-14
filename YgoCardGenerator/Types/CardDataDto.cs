@@ -48,6 +48,10 @@
 
         public int? RightScale { get; set; }
 
+        public bool ShowLevel { get; set; } = true;
+
+        public bool ShowRank { get; set; } = true;
+
         public int? Atk { get; set; }
 
         public int? Def { get; set; }

@@ -36,6 +36,10 @@
 
         public int? RightScale { get; set; }
 
+        public bool ShowLevel { get; set; } = true;
+
+        public bool ShowRank { get; set; } = true;
+
         public string? Atk { get; set; }
 
         public string? Def { get; set; }
@@ -65,6 +69,8 @@
                 Rarity = Rarity,
                 CardType = Type.FirstMatchEnum<CardTypes>() ?? CardTypes.None,
                 Strings = Strings,
+                ShowLevel = ShowLevel,
+                ShowRank = ShowRank,
             };
 
             result.ScriptPath = Path.Combine(basePath, "script", $"c{result.Id}.lua");

@@ -531,12 +531,12 @@ namespace YgoCardGenerator.Commands
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
                 canvas.DrawText(card.LinkRating.ToString(), 617, 947, paint);
             }
-            else if (card.IsMonsterType(MonsterTypes.Xyz) && card.Rank.HasValue)
+            else if (card.IsMonsterType(MonsterTypes.Xyz) && card.Rank.HasValue && card.Rank > 0 && card.ShowRank)
             {
                 using var image = GetResourceImage("level_rank", $"rnk{card.Rank}");
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
             }
-            else if (card.Level.HasValue && card.Level > 0)
+            else if (card.Level.HasValue && card.Level > 0 && card.ShowLevel)
             {
                 using var image = GetResourceImage("level_rank", $"lvl{card.Level}");
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
