@@ -62,7 +62,7 @@ namespace YgoCardGenerator
             foreach (var inputValue in inputValues)
             foreach (var enumValue in enumValues)
             {
-                if (inputValue.Equals(enumValue.ToString(), StringComparison.CurrentCultureIgnoreCase))
+                if (inputValue.Equals(enumValue.ToString().ToKebabCase(), StringComparison.CurrentCultureIgnoreCase))
                     return enumValue;
             }
 
