@@ -84,6 +84,9 @@ namespace YgoCardGenerator.Commands
 
             foreach (var (path, cards) in cardPacks)
             {
+                if (!cardSet.SkipCompilePacks.IsNullOrEmpty() && cardSet.SkipCompilePacks.Any(x => Path.Join(cardSet.BasePath, x) == path))
+                    continue;
+
                 foreach (var card in cards)
                 {
                     Logger.LogInformation($"Complete card {card.Id}...");

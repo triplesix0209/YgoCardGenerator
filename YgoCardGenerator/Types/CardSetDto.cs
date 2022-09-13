@@ -9,6 +9,8 @@
         public string[]? Setcodes { get; set; }
 
         public string[]? Packs { get; set; }
+
+        public string[]? SkipCompilePacks { get; set; }
     }
 
     public class CardSetValidator : AbstractValidator<CardSetDto>
@@ -32,6 +34,10 @@
                 .Must(field => field == null || field.All(item => !item.IsNullOrWhiteSpace()))
                 .WithMessage("Pack list cannot be empty");
             RuleFor(x => x.Packs)
+                .Must((model, field) => field == null || field.All(item => File.Exists(Path.Combine(model.BasePath!, item, CardSetConfig.CardIndexFileName))))
+                .WithMessage("Pack files (pack.toml) must be existed");
+
+            RuleFor(x => x.SkipCompilePacks)
                 .Must((model, field) => field == null || field.All(item => File.Exists(Path.Combine(model.BasePath!, item, CardSetConfig.CardIndexFileName))))
                 .WithMessage("Pack files (pack.toml) must be existed");
         }
