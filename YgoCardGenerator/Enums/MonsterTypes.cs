@@ -18,5 +18,6 @@
         Pendulum = 0x1000000,
         Nomi = 0x2000000,
         Link = 0x4000000,
+        Dimension = 0x20000000,
     }
 }
