@@ -412,7 +412,6 @@ namespace YgoCardGenerator.Commands
 
             if (card.CardType == CardTypes.Spell
                 || card.CardType == CardTypes.Trap
-                || card.IsMonsterType(MonsterTypes.Fusion)
                 || card.IsMonsterType(MonsterTypes.Xyz)
                 || card.IsMonsterType(MonsterTypes.Link))
                 paint.Color = SKColors.White;
