@@ -333,24 +333,32 @@ namespace YgoCardGenerator.Commands
             await SaveImage(surface, outputFilename);
         }
 
-        protected Task DrawCardType(SKCanvas canvas, CardDataDto card, CardSetConfig config)
+        protected async Task DrawCardType(SKCanvas canvas, CardDataDto card, CardSetConfig config)
         {
             using var paint = new SKPaint();
             paint.FilterQuality = SKFilterQuality.High;
             paint.IsAntialias = true;
 
-            using var cardType = GetResourceImage("card_type", card.IsSpellTrap
+            if (card.FramePath.IsNullOrWhiteSpace())
+            {
+                using var cardType = GetResourceImage("card_type", card.IsSpellTrap
                 ? card.CardType.ToString("D")
                 : card.MonsterPrimaryTypes![0].ToString("D"));
-            canvas.DrawImage(cardType, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
+                canvas.DrawImage(cardType, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
+            }
+            else
+            {
+                using var sourceBitmap = SKBitmap.Decode(await File.ReadAllBytesAsync(card.FramePath));
+                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(694, 1013), SKFilterQuality.High);
+                using var scaledImage = SKImage.FromBitmap(scaledBitmap);
+                canvas.DrawImage(scaledImage, 0, 0, paint);
+            }
 
             if (card.IsMonsterType(MonsterTypes.Pendulum))
             {
                 using var pendulum = GetResourceImage("card_type", "16777216");
                 canvas.DrawImage(pendulum, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
             }
-
-            return Task.CompletedTask;
         }
 
         protected async Task DrawCardArtwork(SKCanvas canvas, CardDataDto card, CardSetConfig config)
@@ -410,27 +418,48 @@ namespace YgoCardGenerator.Commands
             paint.Typeface = SKTypeface.FromFamilyName("Yu-Gi-Oh! Matrix Small Caps 1");
             paint.TextSize = 80;
 
-            if (card.CardType == CardTypes.Spell
-                || card.CardType == CardTypes.Trap
-                || card.IsMonsterType(MonsterTypes.Xyz)
-                || card.IsMonsterType(MonsterTypes.Link))
-                paint.Color = SKColors.White;
+            SKColor textColor = SKColors.Black;
+            SKColor? shadowColor = null;
+
+            if (card.NameTextColor.IsNullOrWhiteSpace())
+            {
+                if (card.Rarity == CardRarities.Gold)
+                    textColor = new SKColor(117, 96, 5);
+                else if (card.CardType == CardTypes.Spell
+                    || card.CardType == CardTypes.Trap
+                    || card.IsMonsterType(MonsterTypes.Xyz)
+                    || card.IsMonsterType(MonsterTypes.Link))
+                    textColor = SKColors.White;
+            }
             else
-                paint.Color = SKColors.Black;
+            {
+                textColor = SKColor.Parse(card.NameTextColor);
+            }
+
+            if (card.NameShadowColor.IsNullOrWhiteSpace())
+            {
+                if (card.Rarity == CardRarities.Gold)
+                    shadowColor = new SKColor(231, 229, 228);
+            }
+            else
+            {
+                shadowColor = SKColor.Parse(card.NameShadowColor);
+            }
 
             var textBound = new SKRect();
             var textWidth = paint.MeasureText(card.Name, ref textBound);
             if (textWidth <= 525)
             {
-                if (card.Rarity == CardRarities.Gold)
+                if (shadowColor.HasValue)
                 {
-                    paint.Color = new SKColor(231, 229, 228);
+                    paint.Color = shadowColor.Value;
                     canvas.DrawText(card.Name, 50, 100, paint);
-                    paint.Color = new SKColor(117, 96, 5);
+                    paint.Color = textColor;
                     canvas.DrawText(card.Name, 48, 98, paint);
                 }
                 else
                 {
+                    paint.Color = textColor;
                     canvas.DrawText(card.Name, 50, 100, paint);
                 }
 
@@ -443,15 +472,16 @@ namespace YgoCardGenerator.Commands
             textCanvas.Scale(textImageInfo.Width / textBound.Width, textImageInfo.Height / textBound.Height);
             textCanvas.Translate(-textBound.Left, -textBound.Top);
             {
-                if (card.Rarity == CardRarities.Gold)
+                if (shadowColor.HasValue)
                 {
-                    paint.Color = new SKColor(231, 229, 228);
+                    paint.Color = shadowColor.Value;
                     textCanvas.DrawText(card.Name, 2, 2, paint);
-                    paint.Color = new SKColor(117, 96, 5);
+                    paint.Color = textColor;
                     textCanvas.DrawText(card.Name, 0, 0, paint);
                 }
                 else
                 {
+                    paint.Color = textColor;
                     textCanvas.DrawText(card.Name, 0, 0, paint);
                 }
             }

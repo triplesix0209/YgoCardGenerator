@@ -10,6 +10,10 @@
 
         public string? Name { get; set; }
 
+        public string? NameTextColor { get; set; }
+
+        public string? NameShadowColor { get; set; }
+
         public CardTemplates Template { get; set; } = CardTemplates.Proxy;
 
         public CardLimits CardLimit { get; set; } = CardLimits.Custom;
@@ -56,6 +60,8 @@
 
         public bool Compose { get; set; } = true;
 
+        public string? FramePath { get; set; }
+
         public CardDataDto ToCardDataDto(string basePath)
         {
             var result = new CardDataDto
@@ -64,6 +70,8 @@
                 Alias = Alias,
                 Set = Set,
                 Name = Name,
+                NameTextColor = NameTextColor,
+                NameShadowColor = NameShadowColor,
                 Template = Template,
                 CardLimit = CardLimit,
                 Rarity = Rarity,
@@ -76,7 +84,8 @@
             result.ScriptPath = Path.Combine(basePath, "script", $"c{result.Id}.lua");
             result.ArtworkPath = Path.Combine(basePath, "artwork", result.Id.ToString());
             result.ArtworkPath += File.Exists(result.ArtworkPath + ".png") ? ".png" : ".jpg";
-            
+            result.FramePath = FramePath.IsNullOrWhiteSpace() ? null : Path.Combine(basePath, FramePath);
+
             if (result.IsSpellTrap)
             {
                 result.SpellType = Type.FirstMatchEnum<SpellTypes>() ?? SpellTypes.Normal;

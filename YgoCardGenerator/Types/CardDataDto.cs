@@ -4,6 +4,8 @@
     {
         public string? ArtworkPath { get; set; }
 
+        public string? FramePath { get; set; }
+
         public string? ScriptPath { get; set; }
 
         public int Id { get; set; }
@@ -13,6 +15,10 @@
         public string? Set { get; set; }
 
         public string? Name { get; set; }
+
+        public string? NameTextColor { get; set; }
+
+        public string? NameShadowColor { get; set; }
 
         public CardTemplates Template { get; set; } = CardTemplates.Proxy;
 
