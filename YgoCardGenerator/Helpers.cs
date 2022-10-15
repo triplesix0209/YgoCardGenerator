@@ -37,14 +37,20 @@ namespace YgoCardGenerator
         }
 
         public static TEnum[]? MatchEnum<TEnum>([NotNullWhen(false)] this string? input, params TEnum[] enumValues)
-                    where TEnum : Enum
+                    where TEnum : struct, Enum
         {
             if (input.IsNullOrWhiteSpace()) return default;
             var inputValues = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
-            return enumValues
-                .Where(enumValue => inputValues.Any(value => value.Equals(enumValue.ToString().ToKebabCase(), StringComparison.CurrentCultureIgnoreCase)))
-                .ToArray();
+            var result = new List<TEnum>();
+            foreach (var inputValue in inputValues)
+            {
+                var enumValue = enumValues.FirstOrDefault(enumValue => inputValue.Equals(enumValue.ToString().ToKebabCase(), StringComparison.CurrentCultureIgnoreCase));
+                if (!Enum.IsDefined(enumValue)) continue;
+                result.Add(enumValue);
+            }
+
+            return result.ToArray();
         }
 
         public static TEnum[]? MatchEnum<TEnum>([NotNullWhen(false)] this string? input)
@@ -54,7 +60,7 @@ namespace YgoCardGenerator
         }
 
         public static TEnum? FirstMatchEnum<TEnum>([NotNullWhen(false)] this string? input, params TEnum[] enumValues)
-           where TEnum : Enum
+           where TEnum : struct, Enum
         {
             if (input.IsNullOrWhiteSpace()) return default;
             var inputValues = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
