@@ -441,7 +441,7 @@ namespace YgoCardGenerator.Commands
                 if (card.Rarity == CardRarities.Gold)
                     shadowColor = new SKColor(231, 229, 228);
             }
-            else
+            else if (!card.NameShadowColor.IsNullOrWhiteSpace())
             {
                 shadowColor = SKColor.Parse(card.NameShadowColor);
             }
@@ -466,28 +466,33 @@ namespace YgoCardGenerator.Commands
                 return Task.CompletedTask;
             }
 
+            if (shadowColor.HasValue)
+            {
+                var shadowImageInfo = new SKImageInfo(525, 45);
+                using var shadowSurface = SKSurface.Create(shadowImageInfo);
+                using var shadowCanvas = shadowSurface.Canvas;
+                shadowCanvas.Scale(shadowImageInfo.Width / textBound.Width, shadowImageInfo.Height / textBound.Height);
+                shadowCanvas.Translate(-textBound.Left, -textBound.Top);
+                {
+                    paint.Color = shadowColor.Value;
+                    shadowCanvas.DrawText(card.Name, 0, 0, paint);
+                }
+                using var shadowImage = shadowSurface.Snapshot();
+                canvas.DrawImage(shadowImage, 52, 62, paint);
+            }
+
             var textImageInfo = new SKImageInfo(525, 45);
             using var textSurface = SKSurface.Create(textImageInfo);
             using var textCanvas = textSurface.Canvas;
             textCanvas.Scale(textImageInfo.Width / textBound.Width, textImageInfo.Height / textBound.Height);
             textCanvas.Translate(-textBound.Left, -textBound.Top);
             {
-                if (shadowColor.HasValue)
-                {
-                    paint.Color = shadowColor.Value;
-                    textCanvas.DrawText(card.Name, 2, 2, paint);
-                    paint.Color = textColor;
-                    textCanvas.DrawText(card.Name, 0, 0, paint);
-                }
-                else
-                {
-                    paint.Color = textColor;
-                    textCanvas.DrawText(card.Name, 0, 0, paint);
-                }
+                paint.Color = textColor;
+                textCanvas.DrawText(card.Name, 0, 0, paint);
             }
-
             using var textImage = textSurface.Snapshot();
             canvas.DrawImage(textImage, 50, 60, paint);
+
             return Task.CompletedTask;
         }
 
