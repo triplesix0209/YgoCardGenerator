@@ -100,9 +100,12 @@ namespace YgoCardGenerator.Commands
 
                     await WriteCardDb(card, config, db);
                     if (card.GenerateScript) await GenerateCardScript(card, config);
-                    await GenerateCardImage(card, config);
-                    if (card.IsSpellType(SpellTypes.Field))
-                        await DrawFieldArtwork(card, config);
+                    if (card.GeneratePic)
+                    {
+                        await GenerateCardImage(card, config);
+                        if (card.IsSpellType(SpellTypes.Field))
+                            await DrawFieldArtwork(card, config);
+                    }
                 }
             }
 

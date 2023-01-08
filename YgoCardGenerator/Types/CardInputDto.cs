@@ -62,6 +62,8 @@
 
         public string? FramePath { get; set; }
 
+        public bool GeneratePic { get; set; } = true;
+
         public bool GenerateScript { get; set; } = true;
 
         public CardDataDto ToCardDataDto(string basePath)
@@ -81,6 +83,7 @@
                 Strings = Strings,
                 ShowLevel = ShowLevel,
                 ShowRank = ShowRank,
+                GeneratePic = GeneratePic,
                 GenerateScript = GenerateScript,
             };
 
