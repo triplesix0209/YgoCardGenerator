@@ -99,7 +99,7 @@ namespace YgoCardGenerator.Commands
                         card.Strings = card.Strings.Select(str => config.ApplyMarco(str)).ToArray()!;
 
                     await WriteCardDb(card, config, db);
-                    await GenerateCardScript(card, config);
+                    if (card.GenerateScript) await GenerateCardScript(card, config);
                     await GenerateCardImage(card, config);
                     if (card.IsSpellType(SpellTypes.Field))
                         await DrawFieldArtwork(card, config);

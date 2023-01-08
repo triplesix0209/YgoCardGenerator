@@ -66,6 +66,8 @@
 
         public string[]? Strings { get; set; }
 
+        public bool GenerateScript { get; set; } = true;
+
         public bool IsSpellTrap => CardType == CardTypes.Spell || CardType == CardTypes.Trap;
 
         public bool IsMonster => CardType == CardTypes.Monster;

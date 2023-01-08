@@ -62,6 +62,8 @@
 
         public string? FramePath { get; set; }
 
+        public bool GenerateScript { get; set; } = true;
+
         public CardDataDto ToCardDataDto(string basePath)
         {
             var result = new CardDataDto
@@ -79,6 +81,7 @@
                 Strings = Strings,
                 ShowLevel = ShowLevel,
                 ShowRank = ShowRank,
+                GenerateScript = GenerateScript,
             };
 
             result.ScriptPath = Path.Combine(basePath, "script", $"c{result.Id}.lua");
