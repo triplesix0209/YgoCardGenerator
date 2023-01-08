@@ -119,6 +119,9 @@
                 result.Effect = Effect?.Trim();
                 result.PendulumEffect = PendulumEffect?.Trim();
                 result.PendulumSize = PendulumSize;
+
+                if (result.IsMonsterType(MonsterTypes.Token))
+                    result.GenerateScript = false;
             }
 
             if (result.IsLink)
