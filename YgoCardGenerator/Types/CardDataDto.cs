@@ -22,11 +22,11 @@
 
         public CardTemplates Template { get; set; } = CardTemplates.Proxy;
 
-        public CardLimits CardLimit { get; set; } = CardLimits.Custom;
-
         public CardRarities Rarity { get; set; } = CardRarities.Common;
 
         public CardTypes CardType { get; set; } = CardTypes.None;
+
+        public CardLimits[]? CardLimit { get; set; }
 
         public SpellTypes? SpellType { get; set; }
 

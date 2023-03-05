@@ -16,9 +16,9 @@
 
         public CardTemplates Template { get; set; } = CardTemplates.Proxy;
 
-        public CardLimits CardLimit { get; set; } = CardLimits.Custom;
-
         public CardRarities Rarity { get; set; } = CardRarities.Common;
+
+        public string? CardLimit { get; set; }
 
         public string? Type { get; set; }
 
@@ -77,8 +77,8 @@
                 NameTextColor = NameTextColor,
                 NameShadowColor = NameShadowColor,
                 Template = Template,
-                CardLimit = CardLimit,
                 Rarity = Rarity,
+                CardLimit = CardLimit.MatchEnum<CardLimits>() ?? new[] { CardLimits.Custom },
                 CardType = Type.FirstMatchEnum<CardTypes>() ?? CardTypes.None,
                 Strings = Strings,
                 ShowLevel = ShowLevel,

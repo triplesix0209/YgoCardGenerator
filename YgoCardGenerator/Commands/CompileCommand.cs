@@ -146,9 +146,17 @@ namespace YgoCardGenerator.Commands
             var data = new Data { Id = card.Id };
             var text = new Text { Id = card.Id };
 
-            data.Ot = (int)card.CardLimit;
             data.Alias = card.Alias ?? 0;
             data.Category = 0;
+
+            data.Ot = 0;
+            if (card.CardLimit.IsNullOrEmpty())
+                data.Ot = (int)CardLimits.Custom;
+            else
+            {
+                foreach (var cardLimit in card.CardLimit)
+                    data.Ot += (int)cardLimit;
+            }
 
             data.SetCode = 0;
             var setKeys = card.Set?.Split(" ", System.StringSplitOptions.RemoveEmptyEntries);
