@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using System.Reflection;
-using System.Text;
 using Topten.RichTextKit;
 using YgoCardGenerator.Persistences;
 using YgoCardGenerator.Persistences.Entities;
@@ -22,123 +21,161 @@ namespace YgoCardGenerator.Commands
         protected override CommandArgument[] ArgumentSchema => new CommandArgument[]
         {
             new ("set") { Description = "path card set filename to compile (TOML)" },
+            new ("max-thread") { Description = "number of thread use to compile", DefaultValue = "10" },
         };
 
         public override async Task Do()
         {
-            #region [read cardset]
+            #region [load data]
 
+            // read argument
             var cardSetFilename = Arguments[0].Value();
+            var maxThread = int.Parse(Arguments[1].Value()!);
+
+            // cardset
             var cardSet = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename)!;
             cardSet.ValidateAndThrow();
             var config = new CardSetConfig(cardSet);
+            if (cardSet.BasePath == null || cardSet.CardDbPath == null || cardSet.Packs == null) return;
 
-            #endregion
-
-            #region [read card data]
-
-            var cardPacks = new List<(string path, List<CardDataDto> cards)>();
-            foreach (var packPath in cardSet.Packs!)
+            // utility
+            var utilities = new Dictionary<string, string>();
+            foreach (var filePath in Directory.GetFiles(config.UtilityDirectory))
+                utilities.Add(Path.GetFileName(filePath), filePath);
+            foreach (var packPath in cardSet.Packs)
             {
-                (string path, List<CardDataDto> cards) cardPack = new()
-                {
-                    path = Path.Combine(cardSet.BasePath!, packPath),
-                    cards = new List<CardDataDto>()
-                };
+                var utilityPath = Path.Combine(config.BasePath, packPath, "script/utility");
+                if (!Directory.Exists(utilityPath)) continue;
 
-                var cards = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(cardPack.path, CardSetConfig.CardIndexFileName)));
-                foreach (var card in cards.Values)
+                foreach (var filePath in Directory.GetFiles(utilityPath))
+                {
+                    var fileName = Path.GetFileName(filePath);
+                    if (utilities.ContainsKey(fileName)) throw new Exception($"duplicate utility {fileName} in {packPath}");
+                    utilities.Add(fileName, filePath);
+                }
+            }
+
+            // card
+            var cardIds = new List<int>();
+            var cards = new Queue<CardDataDto>();
+            foreach (var packPath in cardSet.Packs)
+            {
+                var cardPackPath = Path.Combine(cardSet.BasePath, packPath);
+                var listCard = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(cardPackPath, CardSetConfig.CardIndexFileName)));
+
+                foreach (var card in listCard.Values)
                 {
                     var cardInputOptions = new TomlModelOptions { ConvertPropertyName = (name) => name.ToKebabCase() };
                     var cardInput = Toml.ToModel<CardInputDto>(Toml.FromModel(card), options: cardInputOptions);
-                    var cardData = cardInput.ToCardDataDto(cardPack.path);
+                    var cardData = cardInput.ToCardDataDto(cardPackPath);
                     cardData.ValidateAndThrow();
-                    cardPack.cards.Add(cardData);
-                }
 
-                cardPacks.Add(cardPack);
+                    if (cards.Any(x => x.Id == cardData.Id)) throw new Exception($"duplicate card {cardData.Id} in {packPath}");
+
+                    cardIds.Add(cardData.Id);
+                    if (cardSet.SkipCompilePacks.IsNullOrEmpty() || !cardSet.SkipCompilePacks.Any(x => x == packPath))
+                        cards.Enqueue(cardData);
+                }
             }
 
             #endregion
 
             #region [prepare folder & cardDb]
 
-            if (!Directory.Exists(config.ScriptPath)) Directory.CreateDirectory(config.ScriptPath);
+            // create folder
             if (!Directory.Exists(config.PicPath)) Directory.CreateDirectory(config.PicPath);
             if (!Directory.Exists(config.PicFieldPath)) Directory.CreateDirectory(config.PicFieldPath);
-            using var db = new DataContext(Path.Combine(cardSet.BasePath, $"{cardSet.SetName}.cdb"));
-            await db.Database.EnsureCreatedAsync();
-                        
+            if (!Directory.Exists(config.ScriptPath)) Directory.CreateDirectory(config.ScriptPath);
+
+            // clear card db
+            using var db = new DataContext(cardSet.CardDbPath);
+            {
+                await db.Database.EnsureCreatedAsync();
+                if (cardIds.Any())
+                {
+                    db.Data.RemoveRange(db.Data.Where(x => !cardIds.Contains(x.Id.Value)));
+                    db.Text.RemoveRange(db.Text.Where(x => !cardIds.Contains(x.Id.Value)));
+                }
+                else
+                {
+                    db.Data.RemoveRange(db.Data);
+                    db.Text.RemoveRange(db.Text);
+                }
+                await db.SaveChangesAsync();
+            }
+
+            // clear pic
+            var unusedPics = Directory.GetFiles(config.PicPath)
+                .Where(filePath => !cards.Any(card => filePath == Path.Combine(config.PicPath, $"{card.Id}.png")));
+            foreach (var filePath in unusedPics)
+                File.Delete(filePath);
+
+            // clear script
+            var unusedScripts = Directory.GetFiles(config.ScriptPath)
+                .Where(filePath => !utilities.ContainsKey(Path.GetFileName(filePath)))
+                .Where(filePath => !cards.Any(card => filePath == Path.Combine(config.ScriptPath, $"c{card.Id}.lua")));
+            foreach (var filePath in unusedScripts)
+                File.Delete(filePath);
+
+            #endregion
+
+            #region [write utility scripts]
+
+            foreach (var utility in utilities)
+                await CopyFile(utility.Value, Path.Combine(config.ScriptPath, Path.GetFileName(utility.Key)));
+
             #endregion
 
             #region [compile card]
 
-            foreach (var filename in Directory.GetFiles(config.UtilityDirectory))
+            var tasks = new List<Task>();
+            while (cards.Any())
             {
-                using var inputFile = File.OpenRead(filename);
-                using var outputFile = new FileStream(Path.Combine(config.ScriptPath, Path.GetFileName(filename)), FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                outputFile.SetLength(0);
-                await inputFile.CopyToAsync(outputFile);
+                var card = cards.Dequeue();
+                tasks.Add(Task.Run(async () => await CompileCard(card, cardSet)));
+
+                if (tasks.Count >= maxThread) await Task.WhenAny(tasks.ToArray());
+                tasks.RemoveAll(x => x.Status == TaskStatus.RanToCompletion);
             }
 
-            foreach (var (path, cards) in cardPacks)
+            await Task.WhenAll(tasks.ToArray());
+
+            #endregion
+        }
+
+        protected async Task CompileCard(CardDataDto card, CardSetDto cardSet)
+        {
+            Logger.LogInformation($"Compile card {card.Id}...");
+
+            var config = new CardSetConfig(cardSet);
+            await config.LoadMarco(card);
+
+            card.Flavor = config.ApplyMarco(card.Flavor);
+            card.Effect = config.ApplyMarco(card.Effect);
+            card.PendulumEffect = config.ApplyMarco(card.PendulumEffect);
+            if (!card.Strings.IsNullOrEmpty())
+                card.Strings = card.Strings.Select(str => config.ApplyMarco(str)).ToArray()!;
+
+            using var db = new DataContext(cardSet.CardDbPath!);
             {
-                if (!cardSet.SkipCompilePacks.IsNullOrEmpty() && cardSet.SkipCompilePacks.Any(x => Path.Join(cardSet.BasePath, x) == path))
-                    continue;
-
-                foreach (var card in cards)
+                await WriteCardDb(card, config, db);
+                if (card.GenerateScript) await GenerateCardScript(card, config);
+                if (card.GeneratePic)
                 {
-                    Logger.LogInformation($"Complete card {card.Id}...");
-
-                    await config.LoadMarco(path, card);
-                    card.Flavor = config.ApplyMarco(card.Flavor);
-                    card.Effect = config.ApplyMarco(card.Effect);
-                    card.PendulumEffect = config.ApplyMarco(card.PendulumEffect);
-                    if (!card.Strings.IsNullOrEmpty())
-                        card.Strings = card.Strings.Select(str => config.ApplyMarco(str)).ToArray()!;
-
-                    await WriteCardDb(card, config, db);
-                    if (card.GenerateScript) await GenerateCardScript(card, config);
-                    if (card.GeneratePic)
-                    {
-                        await GenerateCardImage(card, config);
-                        if (card.IsSpellType(SpellTypes.Field))
-                            await DrawFieldArtwork(card, config);
-                    }
+                    await GenerateCardImage(card, config);
+                    if (card.IsSpellType(SpellTypes.Field))
+                        await DrawFieldArtwork(card, config);
                 }
             }
+        }
 
-            #endregion
-
-            #region [remove unused]
-
-            var cardIds = cardPacks.SelectMany(x => x.cards.Select(y => y.Id));
-            db.Data.RemoveRange(db.Data.Where(x => !cardIds.Contains(x.Id.Value)));
-            db.Text.RemoveRange(db.Text.Where(x => !cardIds.Contains(x.Id.Value)));
-            await db.SaveChangesAsync();
-
-            var utilScripts = Directory.GetFiles(config.UtilityDirectory);
-            var unusedScripts = Directory.GetFiles(config.ScriptPath).Where(filename =>
-            {
-                foreach (var (path, cards) in cardPacks)
-                    foreach (var card in cards)
-                        if (filename == Path.Combine(config.ScriptPath, $"c{card.Id}.lua")) return false;
-                return !utilScripts.Any(x => Path.GetFileName(x) == Path.GetFileName(filename));
-            });
-
-            var unusedPics = Directory.GetFiles(config.PicPath).Where(filename =>
-            {
-                foreach (var (path, cards) in cardPacks)
-                    foreach (var card in cards)
-                        if (filename == Path.Combine(config.PicPath, $"{card.Id}.png")) return false;
-                return true;
-            });
-
-            foreach (var filename in unusedScripts) File.Delete(filename);
-            foreach (var filename in unusedPics) File.Delete(filename);
-
-            #endregion
+        protected async Task CopyFile(string sourceFilePath, string destinationFilePath)
+        {
+            using var sourceFile = File.OpenRead(sourceFilePath);
+            using var destinationFile = new FileStream(destinationFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            destinationFile.SetLength(0);
+            await sourceFile.CopyToAsync(destinationFile);
         }
 
         protected async Task WriteCardDb(CardDataDto card, CardSetConfig config, DataContext db)

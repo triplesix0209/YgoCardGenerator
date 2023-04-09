@@ -43,13 +43,13 @@ namespace YgoCardGenerator.Types
 
         public Dictionary<string, string> Marcos { get; }
 
-        public async Task LoadMarco(string path, CardDataDto card)
+        public async Task LoadMarco(CardDataDto card)
         {
             Marcos.Clear();
             Marcos.Add("CARD_NAME", card.Name!);
-            if (!File.Exists(Path.Combine(path, MarcoFileName))) return;
+            if (!File.Exists(Path.Combine(card.PackPath!, MarcoFileName))) return;
 
-            var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(path, MarcoFileName)));
+            var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(card.PackPath!, MarcoFileName)));
             foreach (var item in data)
             {
                 var marco = item.Value.ToString();

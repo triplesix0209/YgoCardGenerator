@@ -11,6 +11,8 @@
         public string[]? Packs { get; set; }
 
         public string[]? SkipCompilePacks { get; set; }
+
+        public string? CardDbPath => BasePath == null ? null : Path.Combine(BasePath, $"{SetName}.cdb");
     }
 
     public class CardSetValidator : AbstractValidator<CardSetDto>

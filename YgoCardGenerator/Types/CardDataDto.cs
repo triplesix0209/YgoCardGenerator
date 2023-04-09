@@ -2,6 +2,8 @@
 {
     public class CardDataDto : Dto<CardDataValidator>
     {
+        public string? PackPath { get; set; }
+
         public string? ArtworkPath { get; set; }
 
         public string? FramePath { get; set; }
@@ -106,6 +108,9 @@
     {
         public CardDataValidator()
         {
+            RuleFor(x => x.PackPath)
+                .NotEmpty();
+
             RuleFor(x => x.ArtworkPath)
                 .NotEmpty();
 
