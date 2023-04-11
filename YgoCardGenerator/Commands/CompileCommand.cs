@@ -107,14 +107,14 @@ namespace YgoCardGenerator.Commands
 
             // clear pic
             var unusedPics = Directory.GetFiles(config.PicPath)
-                .Where(filePath => !cards.Any(card => filePath == Path.Combine(config.PicPath, $"{card.Id}.png")));
+                .Where(filePath => !cardIds.Any(id => filePath == Path.Combine(config.PicPath, $"{id}.png")));
             foreach (var filePath in unusedPics)
                 File.Delete(filePath);
 
             // clear script
             var unusedScripts = Directory.GetFiles(config.ScriptPath)
                 .Where(filePath => !utilities.ContainsKey(Path.GetFileName(filePath)))
-                .Where(filePath => !cards.Any(card => filePath == Path.Combine(config.ScriptPath, $"c{card.Id}.lua")));
+                .Where(filePath => !cardIds.Any(id => filePath == Path.Combine(config.ScriptPath, $"c{id}.lua")));
             foreach (var filePath in unusedScripts)
                 File.Delete(filePath);
 
