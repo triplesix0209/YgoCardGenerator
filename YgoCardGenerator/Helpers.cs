@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using YgoCardGenerator.Attribtues;
 
 namespace YgoCardGenerator
 {
@@ -20,7 +21,7 @@ namespace YgoCardGenerator
         {
             return string.Join("-", SplitCase(text)).ToLower();
         }
-        
+
         public static string ToSnakeSpaceCase(this string text)
         {
             return string.Join("_", SplitCase(text)).ToLower();
@@ -66,11 +67,11 @@ namespace YgoCardGenerator
             var inputValues = input.Split(" ", StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var inputValue in inputValues)
-            foreach (var enumValue in enumValues)
-            {
-                if (inputValue.Equals(enumValue.ToString().ToKebabCase(), StringComparison.CurrentCultureIgnoreCase))
-                    return enumValue;
-            }
+                foreach (var enumValue in enumValues)
+                {
+                    if (inputValue.Equals(enumValue.ToString().ToKebabCase(), StringComparison.CurrentCultureIgnoreCase))
+                        return enumValue;
+                }
 
             return default;
         }
@@ -81,7 +82,7 @@ namespace YgoCardGenerator
             return FirstMatchEnum(input, Enum.GetValues<TEnum>());
         }
 
-        public static string? GetEnumDescription(Type enumType, object value)
+        public static string? GetEnumText(Type enumType, object value)
         {
             var valueName = value.ToString();
             if (valueName is null) return null;
@@ -90,8 +91,8 @@ namespace YgoCardGenerator
             var memberInfo = enumType.GetMember(valueName).FirstOrDefault();
             if (memberInfo is null) return null;
 
-            var attrDesc = memberInfo.GetCustomAttribute<DescriptionAttribute>();
-            return attrDesc is null ? valueName : attrDesc.Description;
+            var info = memberInfo.GetCustomAttribute<EnumInfoAttribute>();
+            return info is null || info.Text.IsNullOrWhiteSpace() ? valueName : info.Text;
         }
 
         private static string[] SplitCase(string text)

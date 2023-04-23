@@ -1,76 +1,103 @@
-﻿using System.ComponentModel;
+﻿using YgoCardGenerator.Attribtues;
 
 namespace YgoCardGenerator.Enums
 {
     public enum MonsterRaces
     {
-        Warrior = 0x1,
+        [EnumInfo(Code = 0x1)]
+        Warrior,
 
-        Spellcaster = 0x2,
+        [EnumInfo(Code = 0x2)]
+        Spellcaster,
 
-        Fairy = 0x4,
+        [EnumInfo(Code = 0x4)]
+        Fairy,
 
-        Fiend = 0x8,
+        [EnumInfo(Code = 0x8)]
+        Fiend,
 
-        Zombie = 0x10,
+        [EnumInfo(Code = 0x10)]
+        Zombie,
 
-        Machine = 0x20,
+        [EnumInfo(Code = 0x20)]
+        Machine,
 
-        Aqua = 0x40,
+        [EnumInfo(Code = 0x40)]
+        Aqua,
 
-        Pyro = 0x80,
+        [EnumInfo(Code = 0x80)]
+        Pyro,
 
-        Rock = 0x100,
+        [EnumInfo(Code = 0x100)]
+        Rock,
 
-        [Description("Winged-Beast")]
-        WingedBeast = 0x200,
+        [EnumInfo(Code = 0x200, Text = "Winged-Beast")]
+        WingedBeast,
 
-        Plant = 0x400,
+        [EnumInfo(Code = 0x400)]
+        Plant,
 
-        Insect = 0x800,
+        [EnumInfo(Code = 0x800)]
+        Insect,
 
-        Thunder = 0x1000,
+        [EnumInfo(Code = 0x1000)]
+        Thunder,
 
-        Dragon = 0x2000,
+        [EnumInfo(Code = 0x2000)]
+        Dragon,
 
-        Beast = 0x4000,
+        [EnumInfo(Code = 0x4000)]
+        Beast,
 
-        [Description("Beast-Warrior")]
-        BeastWarrior = 0x8000,
+        [EnumInfo(Code = 0x8000, Text = "Beast-Warrior")]
+        BeastWarrior,
 
-        Dinosaur = 0x10000,
+        [EnumInfo(Code = 0x10000)]
+        Dinosaur,
 
-        Fish = 0x20000,
+        [EnumInfo(Code = 0x20000)]
+        Fish,
 
-        [Description("Sea Serpent")]
-        SeaSerpent = 0x40000,
+        [EnumInfo(Code = 0x40000, Text = "Sea Serpent")]
+        SeaSerpent,
 
-        Reptile = 0x80000,
+        [EnumInfo(Code = 0x80000)]
+        Reptile,
 
-        Psychic = 0x100000,
+        [EnumInfo(Code = 0x100000)]
+        Psychic,
 
-        [Description("Divine-Beast")]
+        [EnumInfo(Code = 0x200000, Text = "Divine-Beast")]
         DivineBeast = 0x200000,
 
-        [Description("Creator God")]
-        CreatorGod = 0x400000,
+        [EnumInfo(Code = 0x400000, Text = "Creator God")]
+        CreatorGod,
 
-        Wyrm = 0x800000,
+        [EnumInfo(Code = 0x800000)]
+        Wyrm,
 
-        Cyberse = 0x1000000,
+        [EnumInfo(Code = 0x1000000)]
+        Cyberse,
 
-        Cyborg = 0x2000000,
+        [EnumInfo(Code = 0x2000000)]
+        Illusionist,
 
-        [Description("Magical Knight")]
-        MagicalKnight = 0x4000000,
+        [EnumInfo(Code = 0x4000000)]
+        Cyborg,
 
-        [Description("High Dragon")]
-        HighDragon = 0x8000000,
+        [EnumInfo(Code = 0x8000000, Text = "Magical Knight")]
+        MagicalKnight,
 
-        [Description("Omega Psychic")]
-        OmegaPsychic = 0x10000000,
+        [EnumInfo(Code = 0x10000000, Text = "High Dragon")]
+        HighDragon,
 
-        [Description("Celestial Warrior")]
-        CelestialWarrior = 0x20000000,
+        [EnumInfo(Code = 0x20000000, Text = "Omega Psychic")]
+        OmegaPsychic,
+
+        [EnumInfo(Code = 0x40000000, Text = "Celestial Warrior")]
+        CelestialWarrior,
+
+        [EnumInfo(Code = 0x80000000)]
+        Galaxy,
     }
 }

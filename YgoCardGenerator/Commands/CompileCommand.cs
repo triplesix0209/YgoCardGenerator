@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using System.Reflection;
 using Topten.RichTextKit;
+using YgoCardGenerator.Attribtues;
 using YgoCardGenerator.Persistences;
 using YgoCardGenerator.Persistences.Entities;
 
@@ -245,7 +246,12 @@ namespace YgoCardGenerator.Commands
             if (!card.Race.IsNullOrEmpty())
             {
                 foreach (var race in card.Race)
-                    data.Race += (int)race;
+                {
+                    var info = (typeof(MonsterRaces).GetMember(race.ToString())
+                        .FirstOrDefault()?.GetCustomAttribute<EnumInfoAttribute>())
+                        ?? throw new Exception($"monster race not found");
+                    data.Race += info.Code;
+                }
             }
 
             if (card.IsMonster)
@@ -435,7 +441,7 @@ namespace YgoCardGenerator.Commands
                 using var cropCanvas = cropSurface.Canvas;
                 cropCanvas.Translate(-left, -top);
                 cropCanvas.DrawImage(scaledImage, left, top, paint);
-                
+
                 using var cropImage = cropSurface.Snapshot();
                 canvas.DrawImage(cropImage, left, top, paint);
 
@@ -457,7 +463,7 @@ namespace YgoCardGenerator.Commands
 
             return Task.CompletedTask;
         }
-        
+
         protected Task DrawCardName(SKCanvas canvas, CardDataDto card, CardSetConfig config)
         {
             using var paint = new SKPaint();
@@ -634,7 +640,7 @@ namespace YgoCardGenerator.Commands
             {
 
             }
-            
+
             return Task.CompletedTask;
         }
 
@@ -701,7 +707,7 @@ namespace YgoCardGenerator.Commands
             else if (card.IsMonsterType(MonsterTypes.Normal))
                 monsterTypes.Add(MonsterTypes.Normal);
 
-            var monsterTypeText = $"[{string.Join("/", monsterTypes.Select(x => Helpers.GetEnumDescription(x.GetType(), x) ))}]";
+            var monsterTypeText = $"[{string.Join("/", monsterTypes.Select(x => Helpers.GetEnumText(x.GetType(), x)))}]";
 
             var top = 785;
             if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Large)
@@ -733,7 +739,7 @@ namespace YgoCardGenerator.Commands
             paint.IsAntialias = true;
             paint.Typeface = SKTypeface.FromFamilyName("MatrixBoldSmallCaps");
             paint.TextSize = 28;
-                        
+
             using var image = GetResourceImage("atkdef-line");
             canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
 
@@ -783,7 +789,7 @@ namespace YgoCardGenerator.Commands
         protected Task DrawMonsterPendulumEffect(SKCanvas canvas, CardDataDto card, CardSetConfig config)
         {
             if (!card.IsMonsterType(MonsterTypes.Pendulum) || card.PendulumEffect.IsNullOrWhiteSpace()) return Task.CompletedTask;
-            
+
             var paint = new TextPaintOptions { Edging = SKFontEdging.SubpixelAntialias };
             var textblock = new TextBlock { MaxWidth = 483, MaxHeight = 115 };
             var point = new SKPoint { X = 105, Y = 635 };
@@ -867,7 +873,7 @@ namespace YgoCardGenerator.Commands
             using var file = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             await stream.CopyToAsync(file);
         }
-    
+
         protected SKImage GetResourceImage(params string[] keys)
         {
             return SKImage.FromEncodedData(_assembly.GetManifestResourceStream($"YgoCardGenerator.Resources.Proxy.{string.Join(".", keys)}.png"));

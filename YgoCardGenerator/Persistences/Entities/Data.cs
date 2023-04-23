@@ -32,7 +32,7 @@ namespace YgoCardGenerator.Persistences.Entities
         public int? Level { get; set; }
 
         [Column("race")]
-        public int? Race { get; set; }
+        public uint? Race { get; set; }
 
         [Column("attribute")]
         public int? Attribute { get; set; }
