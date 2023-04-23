@@ -8,7 +8,7 @@ namespace YgoCardGenerator.Persistences.Entities
     {
         [Column("id")]
         [Key]
-        public int? Id { get; set; }
+        public int Id { get; set; }
 
         [Column("ot")]
         public int? Ot { get; set; }

@@ -65,10 +65,12 @@ namespace YgoCardGenerator.Commands
                 var cardPackPath = Path.Combine(cardSet.BasePath, packPath);
                 var listCard = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(cardPackPath, CardSetConfig.CardIndexFileName)));
 
-                foreach (var card in listCard.Values)
+                for (var i = 0; i < listCard.Count; i++)
                 {
                     var cardInputOptions = new TomlModelOptions { ConvertPropertyName = (name) => name.ToKebabCase() };
-                    var cardInput = Toml.ToModel<CardInputDto>(Toml.FromModel(card), options: cardInputOptions);
+                    var cardInput = Toml.ToModel<CardInputDto>(Toml.FromModel(listCard.Values.ElementAt(i)), options: cardInputOptions);
+                    cardInput.Key = listCard.Keys.ElementAt(i);
+
                     var cardData = cardInput.ToCardDataDto(cardPackPath);
                     cardData.ValidateAndThrow();
 
@@ -95,8 +97,8 @@ namespace YgoCardGenerator.Commands
                 await db.Database.EnsureCreatedAsync();
                 if (cardIds.Any())
                 {
-                    db.Data.RemoveRange(db.Data.Where(x => !cardIds.Contains(x.Id.Value)));
-                    db.Text.RemoveRange(db.Text.Where(x => !cardIds.Contains(x.Id.Value)));
+                    db.Data.RemoveRange(db.Data.Where(x => !cardIds.Contains(x.Id)));
+                    db.Text.RemoveRange(db.Text.Where(x => !cardIds.Contains(x.Id)));
                 }
                 else
                 {

@@ -2,6 +2,8 @@
 {
     public class CardInputDto : Dto
     {
+        public string? Key { get; set; }
+
         public int Id { get; set; }
 
         public int? Alias { get; set; }
@@ -68,7 +70,10 @@
 
         public CardDataDto ToCardDataDto(string basePath)
         {
-            var result = new CardDataDto
+            if (Key.IsNullOrWhiteSpace())
+                throw new ArgumentNullException(nameof(Key));
+
+            var result = new CardDataDto(Key, basePath)
             {
                 Id = Id,
                 Alias = Alias,
@@ -87,9 +92,8 @@
                 GenerateScript = GenerateScript,
             };
 
-            result.PackPath = basePath;
-            result.ScriptPath = Path.Combine(basePath, "script", $"c{result.Id}.lua");
-            result.ArtworkPath = Path.Combine(basePath, "artwork", result.Id.ToString());
+            result.ScriptPath = Path.Combine(basePath, "script", $"{result.Key}.lua");
+            result.ArtworkPath = Path.Combine(basePath, "artwork", result.Key.ToString());
             result.ArtworkPath += File.Exists(result.ArtworkPath + ".png") ? ".png" : ".jpg";
             result.FramePath = FramePath.IsNullOrWhiteSpace() ? null : Path.Combine(basePath, FramePath);
 
@@ -100,7 +104,7 @@
             }
             else if (result.IsMonster)
             {
-                result.MonsterType = Type.MatchEnum<MonsterTypes>() ?? new [] { MonsterTypes.Normal };
+                result.MonsterType = Type.MatchEnum<MonsterTypes>() ?? new[] { MonsterTypes.Normal };
                 result.Attribute = Attribute.MatchEnum<MonsterAttributes>();
                 result.Race = Race.MatchEnum<MonsterRaces>();
 

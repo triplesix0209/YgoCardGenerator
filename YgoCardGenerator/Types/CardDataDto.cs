@@ -2,7 +2,9 @@
 {
     public class CardDataDto : Dto<CardDataValidator>
     {
-        public string? PackPath { get; set; }
+        public string Key { get; set; }
+
+        public string PackPath { get; set; }
 
         public string? ArtworkPath { get; set; }
 
@@ -102,6 +104,12 @@
         public bool IsMonsterType(params MonsterTypes[] types) => IsMonster && MonsterType != null && MonsterType.Any(x => types.Contains(x));
 
         public bool HasLinkArrow(LinkArrows arrows) => IsLink && LinkArrow != null && LinkArrow.Any(x => x == arrows);
+
+        public CardDataDto(string key, string packPath)
+        {
+            this.Key = key;
+            this.PackPath = packPath;
+        }
     }
 
     public class CardDataValidator : AbstractValidator<CardDataDto>
@@ -119,6 +127,9 @@
 
             RuleFor(x => x.Id)
                 .GreaterThan(0);
+
+            RuleFor(x => x.Key)
+                .NotEmpty();
 
             RuleFor(x => x.Name)
                 .NotEmpty();
