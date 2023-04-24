@@ -13,6 +13,7 @@ namespace YgoCardGenerator.Types
             BasePath = input.BasePath!;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
+            PicFieldPath = !input.PicFieldPath.IsNullOrWhiteSpace() ? input.PicFieldPath : Path.Combine(BasePath, "pics", "field");
 
             if (!input.Setcodes.IsNullOrEmpty())
             {
@@ -27,11 +28,11 @@ namespace YgoCardGenerator.Types
 
         public string BasePath { get; }
 
+        public string PicFieldPath { get; }
+
         public string ScriptPath => Path.Combine(BasePath, "script");
 
         public string PicPath => Path.Combine(BasePath, "pics");
-
-        public string PicFieldPath => Path.Combine(BasePath, "pics", "field");
 
         public string UtilityDirectory => Path.Combine(BasePath, "utility");
 
@@ -68,7 +69,7 @@ namespace YgoCardGenerator.Types
         public string? ApplyMarco([NotNullWhen(false)] string? input)
         {
             if (input.IsNullOrEmpty()) return input;
-            
+
             var result = input;
             foreach (var marco in Marcos)
             {
@@ -87,7 +88,7 @@ namespace YgoCardGenerator.Types
                     result = regex.Replace(result, text);
                 }
             }
-            
+
             return result;
         }
     }

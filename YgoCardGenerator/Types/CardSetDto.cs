@@ -4,6 +4,8 @@
     {
         public string? BasePath { get; set; }
 
+        public string? PicFieldPath { get; set; }
+
         public string? SetName { get; set; }
 
         public string[]? Setcodes { get; set; }
