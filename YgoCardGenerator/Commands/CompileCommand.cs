@@ -426,8 +426,8 @@ namespace YgoCardGenerator.Commands
             using var sourceBitmap = SKBitmap.Decode(await File.ReadAllBytesAsync(card.ArtworkPath!));
             if (!card.IsMonsterType(MonsterTypes.Pendulum))
             {
-                var left = 44;
-                var top = 182;
+                var left = 83;
+                var top = 186;
                 using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(528, 528), SKFilterQuality.High);
                 using var scaledImage = SKImage.FromBitmap(scaledBitmap);
                 canvas.DrawImage(scaledImage, left, top, paint);
