@@ -206,7 +206,7 @@ namespace YgoCardGenerator.Commands
                 foreach (var key in setKeys)
                 {
                     if (!config.SetCodes.ContainsKey(key)) continue;
-                    data.SetCode += (int)(config.SetCodes[key] << (count * 16));
+                    data.SetCode += config.SetCodes[key] << (count * 16);
                     count += 1;
                 }
             }

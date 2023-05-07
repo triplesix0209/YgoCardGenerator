@@ -17,7 +17,7 @@ namespace YgoCardGenerator.Persistences.Entities
         public int? Alias { get; set; }
 
         [Column("setcode")]
-        public int? SetCode { get; set; }
+        public long? SetCode { get; set; }
 
         [Column("type")]
         public int? Type { get; set; }
