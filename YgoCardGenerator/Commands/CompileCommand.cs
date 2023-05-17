@@ -228,10 +228,14 @@ namespace YgoCardGenerator.Commands
             {
                 if (card.IsMonsterType(MonsterTypes.Link))
                     data.Level = card.LinkRating ?? 0;
-                else if (card.IsMonsterType(MonsterTypes.Xyz))
-                    data.Level = card.Rank ?? 0;
                 else
-                    data.Level = card.Level ?? 0;
+                {
+                    var firstMonsterType = card.FirstMonsterPrimaryType!.Value;
+                    if (firstMonsterType == MonsterTypes.Xyz)
+                        data.Level = card.Rank ?? 0;
+                    else
+                        data.Level = card.Level ?? 0;
+                }
 
                 if (card.IsMonsterType(MonsterTypes.Pendulum))
                     data.Level += ((card.LeftScale ?? 0) << 24) + ((card.RightScale ?? 0) << 16);
@@ -399,7 +403,7 @@ namespace YgoCardGenerator.Commands
             {
                 using var cardType = GetResourceImage("card_type", card.IsSpellTrap
                 ? card.CardType.ToString("D")
-                : card.MonsterPrimaryTypes![0].ToString("D"));
+                : card.FirstMonsterPrimaryType!.Value.ToString("D"));
                 canvas.DrawImage(cardType, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
             }
             else

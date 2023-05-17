@@ -80,6 +80,19 @@
 
         public bool IsLink => IsSpellType(SpellTypes.Link) || IsMonsterType(MonsterTypes.Link);
 
+        public MonsterTypes? FirstMonsterPrimaryType => MonsterType?
+            .Where(x => new[]
+            {
+                MonsterTypes.Token,
+                MonsterTypes.Normal,
+                MonsterTypes.Effect,
+                MonsterTypes.Ritual,
+                MonsterTypes.Fusion,
+                MonsterTypes.Synchro,
+                MonsterTypes.Xyz,
+                MonsterTypes.Link,
+            }.Contains(x)).FirstOrDefault();
+
         public MonsterTypes[]? MonsterPrimaryTypes => MonsterType?
             .Where(x => new[]
             {
@@ -92,7 +105,6 @@
                 MonsterTypes.Xyz,
                 MonsterTypes.Link,
             }.Contains(x))
-            .OrderByDescending(x => x)
             .ToArray();
 
         public MonsterTypes[]? MonsterSecondaryTypes => MonsterType?
@@ -147,11 +159,11 @@
                 .WithMessage("must between 0 - 8");
 
             RuleFor(x => x.Rank)
-                .Must((model, field) => !model.IsMonster || !model.IsMonsterType(MonsterTypes.Xyz) || (0 <= field && field <= 13))
+                .Must((model, field) => !model.IsMonster || model.FirstMonsterPrimaryType != MonsterTypes.Xyz || (0 <= field && field <= 13))
                 .WithMessage("must between 0 - 13");
 
             RuleFor(x => x.Level)
-                .Must((model, field) => !model.IsMonster || model.IsMonsterType(MonsterTypes.Xyz) || model.IsLink || (0 <= field && field <= 13))
+                .Must((model, field) => !model.IsMonster || model.FirstMonsterPrimaryType == MonsterTypes.Xyz || model.IsLink || (0 <= field && field <= 13))
                 .WithMessage("must between 0 - 13");
 
             RuleFor(x => x.LeftScale)

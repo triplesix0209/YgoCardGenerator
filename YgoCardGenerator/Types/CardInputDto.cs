@@ -1,4 +1,6 @@
-﻿namespace YgoCardGenerator.Types
+﻿using YgoCardGenerator.Persistences.Entities;
+
+namespace YgoCardGenerator.Types
 {
     public class CardInputDto : Dto
     {
@@ -110,10 +112,14 @@
 
                 if (result.IsMonsterType(MonsterTypes.Link))
                     result.LinkRating = Link ?? Level ?? 0;
-                else if (result.IsMonsterType(MonsterTypes.Xyz))
-                    result.Rank = Rank ?? Level ?? 0;
                 else
-                    result.Level = Level ?? 0;
+                {
+                    var firstMonsterType = result.FirstMonsterPrimaryType!.Value;
+                    if (firstMonsterType == MonsterTypes.Xyz)
+                        result.Rank = Rank ?? Level ?? 0;
+                    else
+                        result.Level = Level ?? 0;
+                }
 
                 result.LeftScale = LeftScale ?? Scale;
                 result.RightScale = RightScale ?? Scale;
