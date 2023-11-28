@@ -39,5 +39,21 @@ namespace YgoCardGenerator.Persistences.Entities
 
         [Column("category")]
         public int? Category { get; set; }
+
+        [Column("genre")]
+        public int? Genre { get; set; }
+
+        [Column("script")]
+        [DataType("blob")]
+        public string? Script { get; set; }
+
+        [Column("support")]
+        public int? Support { get; set; }
+
+        [Column("ocgdate")]
+        public long? OcgDate { get; set; }
+
+        [Column("tcgdate")]
+        public long? TcgDate { get; set; }
     }
 }

@@ -183,7 +183,7 @@ namespace YgoCardGenerator.Commands
 
         protected async Task WriteCardDb(CardDataDto card, CardSetConfig config, DataContext db)
         {
-            var data = new Data { Id = card.Id };
+            var data = new Data { Id = card.Id, Genre = 0, Script = null, Support = 0, OcgDate = 253402207200, TcgDate = 253402207200 };
             var text = new Text { Id = card.Id };
 
             data.Alias = card.Alias ?? 0;

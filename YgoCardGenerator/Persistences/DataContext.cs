@@ -14,6 +14,8 @@ namespace YgoCardGenerator.Persistences
 
         public DbSet<Text> Text { get; set; }
 
+        public DbSet<Setcode> Setcode { get; set; }
+
         public DataContext(string dataSource)
         {
             _dataSource = dataSource;
