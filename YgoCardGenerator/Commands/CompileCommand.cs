@@ -723,6 +723,7 @@ namespace YgoCardGenerator.Commands
             else if (card.IsMonsterType(MonsterTypes.Normal))
                 monsterTypes.Add(MonsterTypes.Normal);
 
+            monsterTypes.Remove(MonsterTypes.Nomi);
             var monsterTypeText = $"[{string.Join("/", monsterTypes.Select(x => Helpers.GetEnumText(x.GetType(), x)))}]";
 
             var top = 785;
