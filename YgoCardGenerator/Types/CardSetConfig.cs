@@ -46,8 +46,6 @@ namespace YgoCardGenerator.Types
 
         public string PicFieldPath { get; }
 
-        public string UtilityDirectory => Path.Combine(BasePath, "utility");
-
         public int CardWidth => 694;
 
         public int CardHeight => 1013;

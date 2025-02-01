@@ -46,23 +46,6 @@ namespace YgoCardGenerator.Commands
             if (cardSet.BasePath == null || cardSet.Packs == null) return;
             var config = new CardSetConfig(cardSet);
 
-            // utility
-            var utilities = new Dictionary<string, string>();
-            foreach (var filePath in Directory.GetFiles(config.UtilityDirectory))
-                utilities.Add(Path.GetFileName(filePath), filePath);
-            foreach (var packPath in cardSet.Packs)
-            {
-                var utilityPath = Path.Combine(config.BasePath, packPath, "script/utility");
-                if (!Directory.Exists(utilityPath)) continue;
-
-                foreach (var filePath in Directory.GetFiles(utilityPath))
-                {
-                    var fileName = Path.GetFileName(filePath);
-                    if (utilities.ContainsKey(fileName)) throw new Exception($"duplicate utility {fileName} in {packPath}");
-                    utilities.Add(fileName, filePath);
-                }
-            }
-
             // card
             var cardIds = new List<int>();
             var cards = new Queue<CardDataDto>();
@@ -122,18 +105,13 @@ namespace YgoCardGenerator.Commands
 
             // clear script
             var unusedScripts = Directory.GetFiles(config.ScriptPath)
-                .Where(filePath => !utilities.ContainsKey(Path.GetFileName(filePath)))
                 .Where(filePath => !cardIds.Any(id => filePath == Path.Combine(config.ScriptPath, $"c{id}.lua")));
             foreach (var filePath in unusedScripts)
                 File.Delete(filePath);
 
             #endregion
 
-            #region [write utilities & include]
-
-            foreach (var utility in utilities)
-                await CopyFile(utility.Value, Path.Combine(config.ScriptPath, Path.GetFileName(utility.Key)));
-
+            #region [include files]
             if (Directory.Exists(Path.Combine(config.BasePath, "include")))
             {
                 var files = Directory.GetFiles(Path.Combine(config.BasePath, "include"));
