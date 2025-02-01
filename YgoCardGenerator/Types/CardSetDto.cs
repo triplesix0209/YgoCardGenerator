@@ -2,6 +2,8 @@
 {
     public class CardSetDto : Dto<CardSetValidator>
     {
+        public GameTargets GameTarget { get; set; }
+
         public string? BasePath { get; set; }
 
         public string? PicFieldPath { get; set; }
@@ -21,6 +23,9 @@
     {
         public CardSetValidator()
         {
+            RuleFor(x => x.GameTarget)
+                .IsInEnum();
+
             RuleFor(x => x.BasePath)
                 .NotEmpty();
 

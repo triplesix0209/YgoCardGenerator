@@ -265,6 +265,11 @@ namespace YgoCardGenerator.Commands
                 data.Atk = card.Atk ?? -2;
                 data.Def = card.Def ?? -2;
             }
+            else
+            {
+                data.Atk = -2;
+                data.Def = -2;
+            }
 
             if (card.IsLink)
             {
@@ -313,6 +318,24 @@ namespace YgoCardGenerator.Commands
                 for (var i = 1; i <= card.Strings.Length; i++)
                     textEntityType.GetProperty("Str" + i)!.SetValue(text, config.ApplyMarco(card.Strings[i - 1]));
             }
+
+            text.Desc ??= "";
+            text.Str1 ??= "";
+            text.Str2 ??= "";
+            text.Str3 ??= "";
+            text.Str4 ??= "";
+            text.Str5 ??= "";
+            text.Str6 ??= "";
+            text.Str7 ??= "";
+            text.Str8 ??= "";
+            text.Str9 ??= "";
+            text.Str10 ??= "";
+            text.Str11 ??= "";
+            text.Str12 ??= "";
+            text.Str13 ??= "";
+            text.Str14 ??= "";
+            text.Str15 ??= "";
+            text.Str16 ??= "";
 
             if (await db.Data.AnyAsync(x => x.Id == card.Id)) db.Update(data);
             else db.Add(data);
