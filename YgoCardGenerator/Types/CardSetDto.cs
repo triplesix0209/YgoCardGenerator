@@ -2,7 +2,7 @@
 {
     public class CardSetDto : Dto<CardSetValidator>
     {
-        public GameTargets GameTarget { get; set; }
+        public ExportTypes ExportType { get; set; }
 
         public string? BasePath { get; set; }
 
@@ -23,7 +23,7 @@
     {
         public CardSetValidator()
         {
-            RuleFor(x => x.GameTarget)
+            RuleFor(x => x.ExportType)
                 .IsInEnum();
 
             RuleFor(x => x.BasePath)
