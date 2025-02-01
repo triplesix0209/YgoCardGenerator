@@ -1,6 +1,4 @@
-﻿using YgoCardGenerator.Persistences.Entities;
-
-namespace YgoCardGenerator.Types
+﻿namespace YgoCardGenerator.Types
 {
     public class CardInputDto : Dto
     {
