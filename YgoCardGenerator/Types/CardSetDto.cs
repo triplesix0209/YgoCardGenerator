@@ -1,14 +1,18 @@
-﻿namespace YgoCardGenerator.Types
+﻿#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
+namespace YgoCardGenerator.Types
 {
     public class CardSetDto : Dto<CardSetValidator>
     {
-        public ExportTypes ExportType { get; set; }
+        public string SetName { get; set; }
 
         public string? BasePath { get; set; }
 
-        public string? PicFieldPath { get; set; }
+        public ExportTypes ExportType { get; set; }
 
-        public string? SetName { get; set; }
+        public string? ExportPath { get; set; }
+
+        public string? PicFieldPath { get; set; }
 
         public string[]? Setcodes { get; set; }
 
@@ -16,20 +20,23 @@
 
         public string[]? SkipCompilePacks { get; set; }
 
-        public string? CardDbPath => BasePath == null ? null : Path.Combine(BasePath, $"{SetName}.cdb");
+        public string? CardDbPath { get; set; }
     }
 
     public class CardSetValidator : AbstractValidator<CardSetDto>
     {
         public CardSetValidator()
         {
-            RuleFor(x => x.ExportType)
-                .IsInEnum();
+            RuleFor(x => x.SetName)
+                .NotEmpty();
 
             RuleFor(x => x.BasePath)
                 .NotEmpty();
 
-            RuleFor(x => x.SetName)
+            RuleFor(x => x.ExportType)
+                .IsInEnum();
+
+            RuleFor(x => x.ExportPath)
                 .NotEmpty();
 
             RuleFor(x => x.Setcodes)

@@ -11,9 +11,17 @@ namespace YgoCardGenerator.Types
         public CardSetConfig(CardSetDto input)
         {
             BasePath = input.BasePath!;
+            ExportType = input.ExportType;
+            ExportPath = input.ExportPath!;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
-            PicFieldPath = !input.PicFieldPath.IsNullOrWhiteSpace() ? input.PicFieldPath : Path.Combine(BasePath, "pics", "field");
+
+            if (ExportType == ExportTypes.MDPro3)
+                ExportPath = Path.Combine(ExportPath, input.SetName);
+
+            ScriptPath = Path.Combine(ExportPath, "script");
+            PicPath = Path.Combine(ExportPath, "pics");
+            PicFieldPath = !input.PicFieldPath.IsNullOrWhiteSpace() ? input.PicFieldPath : Path.Combine(PicPath, "field");
 
             if (!input.Setcodes.IsNullOrEmpty())
             {
@@ -28,11 +36,15 @@ namespace YgoCardGenerator.Types
 
         public string BasePath { get; }
 
+        public ExportTypes ExportType { get; }
+
+        public string ExportPath { get; }
+
+        public string ScriptPath { get; }
+
+        public string PicPath { get; }
+
         public string PicFieldPath { get; }
-
-        public string ScriptPath => Path.Combine(BasePath, "script");
-
-        public string PicPath => Path.Combine(BasePath, "pics");
 
         public string UtilityDirectory => Path.Combine(BasePath, "utility");
 

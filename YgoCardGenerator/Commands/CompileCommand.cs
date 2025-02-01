@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
+using System.IO.Compression;
 using System.Reflection;
 using Topten.RichTextKit;
 using YgoCardGenerator.Attribtues;
@@ -36,9 +37,14 @@ namespace YgoCardGenerator.Commands
             // cardset
             var cardSet = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename)!;
+            cardSet.ExportPath ??= cardSet.BasePath;
+            if (cardSet.ExportType == ExportTypes.MDPro3)
+                cardSet.CardDbPath = Path.Join(cardSet.ExportPath, cardSet.SetName, $"{cardSet.SetName}.cdb");
+            else
+                cardSet.CardDbPath = Path.Join(cardSet.ExportPath, $"{cardSet.SetName}.cdb");
             cardSet.ValidateAndThrow();
+            if (cardSet.BasePath == null || cardSet.Packs == null) return;
             var config = new CardSetConfig(cardSet);
-            if (cardSet.BasePath == null || cardSet.CardDbPath == null || cardSet.Packs == null) return;
 
             // utility
             var utilities = new Dictionary<string, string>();
@@ -87,9 +93,9 @@ namespace YgoCardGenerator.Commands
             #region [prepare folder & cardDb]
 
             // create folder
+            if (!Directory.Exists(config.ScriptPath)) Directory.CreateDirectory(config.ScriptPath);
             if (!Directory.Exists(config.PicPath)) Directory.CreateDirectory(config.PicPath);
             if (!Directory.Exists(config.PicFieldPath)) Directory.CreateDirectory(config.PicFieldPath);
-            if (!Directory.Exists(config.ScriptPath)) Directory.CreateDirectory(config.ScriptPath);
 
             // clear card db
             using var db = new DataContext(cardSet.CardDbPath);
@@ -123,10 +129,17 @@ namespace YgoCardGenerator.Commands
 
             #endregion
 
-            #region [write utility scripts]
+            #region [write utilities & include]
 
             foreach (var utility in utilities)
                 await CopyFile(utility.Value, Path.Combine(config.ScriptPath, Path.GetFileName(utility.Key)));
+
+            if (Directory.Exists(Path.Combine(config.BasePath, "include")))
+            {
+                var files = Directory.GetFiles(Path.Combine(config.BasePath, "include"));
+                foreach (var file in files)
+                    await CopyFile(file, Path.Combine(config.ExportPath, Path.GetFileName(file)));
+            }
 
             #endregion
 
@@ -143,6 +156,22 @@ namespace YgoCardGenerator.Commands
             }
 
             await Task.WhenAll(tasks.ToArray());
+
+            #endregion
+
+            #region [Packing YPK]
+
+            if (cardSet.ExportType == ExportTypes.MDPro3)
+            {
+                Logger.LogInformation($"Packing into [{cardSet.SetName}.ypk]");
+                Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+
+                var sourceFolder = Path.Join(cardSet.ExportPath, cardSet.SetName);
+                var destinationFile = Path.Join(cardSet.ExportPath, $"{cardSet.SetName}.ypk");
+                if (File.Exists(destinationFile)) File.Delete(destinationFile);
+                ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
+                Directory.Delete(sourceFolder, true);
+            }
 
             #endregion
         }
