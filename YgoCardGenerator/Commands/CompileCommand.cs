@@ -112,12 +112,8 @@ namespace YgoCardGenerator.Commands
             #endregion
 
             #region [include files]
-            if (Directory.Exists(Path.Combine(config.BasePath, "include")))
-            {
-                var files = Directory.GetFiles(Path.Combine(config.BasePath, "include"));
-                foreach (var file in files)
-                    await CopyFile(file, Path.Combine(config.ExportPath, Path.GetFileName(file)));
-            }
+
+            await CopyIncludes(config);
 
             #endregion
 
@@ -152,6 +148,25 @@ namespace YgoCardGenerator.Commands
             }
 
             #endregion
+        }
+
+        protected async Task CopyIncludes(CardSetConfig config, string path = "")
+        {
+            var basePath = Path.Combine(config.BasePath, "include", path);
+            if (!Directory.Exists(basePath)) return;
+
+            var files = Directory.GetFiles(basePath);
+            foreach (var file in files)
+                await CopyFile(file, Path.Combine(config.ExportPath, path, Path.GetFileName(file)));
+
+            var folders = Directory.GetDirectories(basePath);
+            foreach (var folder in folders)
+            {
+                var folderName = Path.GetFileName(folder);
+                if (!Directory.Exists(Path.Combine(config.ExportPath, path, folderName)))
+                    Directory.CreateDirectory(Path.Combine(config.ExportPath, path, folderName));
+                await CopyIncludes(config, Path.Combine(path, folderName));
+            }
         }
 
         protected async Task CompileCard(CardDataDto card, CardSetDto cardSet)
