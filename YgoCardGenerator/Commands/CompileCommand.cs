@@ -3,13 +3,11 @@ using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using System.IO.Compression;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using Topten.RichTextKit;
 using YgoCardGenerator.Attribtues;
 using YgoCardGenerator.Persistences;
 using YgoCardGenerator.Persistences.Entities;
-using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace YgoCardGenerator.Commands
 {
@@ -404,7 +402,7 @@ namespace YgoCardGenerator.Commands
             for (var i = 0; i < scripts.Count; i++)
             {
                 if (!regex.IsMatch(scripts[i])) continue;
-                var filePath = Path.Combine(card.PackPath, "script", "include", scripts[i][13..]);
+                var filePath = Path.Combine(config.BasePath, "include", scripts[i][13..]);
                 if (!File.Exists(filePath)) continue;
 
                 using var reader = new StreamReader(filePath);
