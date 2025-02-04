@@ -54,25 +54,45 @@ namespace YgoCardGenerator.Types
 
         public Dictionary<string, string> Marcos { get; }
 
-        public async Task LoadMarco(CardDataDto card)
+        public async Task LoadMarco(CardDataDto card, CardSetConfig config)
         {
             Marcos.Clear();
             Marcos.Add("CARD_NAME", card.Name!);
-            if (!File.Exists(Path.Combine(card.PackPath!, MarcoFileName))) return;
 
-            var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(card.PackPath!, MarcoFileName)));
-            foreach (var item in data)
+            if (File.Exists(Path.Combine(config.BasePath, MarcoFileName)))
             {
-                var marco = item.Value.ToString();
-                if (marco.IsNullOrEmpty()) continue;
-                Marcos.Add(item.Key, marco);
+                var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(config.BasePath, MarcoFileName)));
+                foreach (var item in data)
+                {
+                    var marco = item.Value.ToString();
+                    if (marco.IsNullOrEmpty()) continue;
+                    Marcos.Add(item.Key, marco);
+                }
+
+                foreach (var item in data)
+                {
+                    var text = ApplyMarco(Marcos[item.Key]);
+                    if (text.IsNullOrWhiteSpace()) continue;
+                    Marcos[item.Key] = text;
+                }
             }
 
-            foreach (var item in data)
+            if (File.Exists(Path.Combine(card.PackPath!, MarcoFileName)))
             {
-                var text = ApplyMarco(Marcos[item.Key]);
-                if (text.IsNullOrWhiteSpace()) continue;
-                Marcos[item.Key] = text;
+                var data = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(card.PackPath!, MarcoFileName)));
+                foreach (var item in data)
+                {
+                    var marco = item.Value.ToString();
+                    if (marco.IsNullOrEmpty()) continue;
+                    Marcos.Add(item.Key, marco);
+                }
+
+                foreach (var item in data)
+                {
+                    var text = ApplyMarco(Marcos[item.Key]);
+                    if (text.IsNullOrWhiteSpace()) continue;
+                    Marcos[item.Key] = text;
+                }
             }
         }
 

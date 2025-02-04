@@ -174,7 +174,7 @@ namespace YgoCardGenerator.Commands
             Logger.LogInformation($"Compile card {card.Id}...");
 
             var config = new CardSetConfig(cardSet);
-            await config.LoadMarco(card);
+            await config.LoadMarco(card, config);
 
             card.Flavor = config.ApplyMarco(card.Flavor);
             card.Effect = config.ApplyMarco(card.Effect);
