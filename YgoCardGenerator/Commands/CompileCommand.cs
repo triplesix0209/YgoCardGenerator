@@ -152,7 +152,7 @@ namespace YgoCardGenerator.Commands
 
         protected async Task CopyPublicFiles(CardSetConfig config, string path = "")
         {
-            var basePath = Path.Combine(config.BasePath, "include", path);
+            var basePath = Path.Combine(config.BasePath, "public", path);
             if (!Directory.Exists(basePath)) return;
 
             var files = Directory.GetFiles(basePath);
