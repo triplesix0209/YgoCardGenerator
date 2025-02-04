@@ -83,7 +83,7 @@ namespace YgoCardGenerator.Types
             var result = input;
             foreach (var marco in Marcos)
             {
-                var regex = new Regex(@"\{" + marco.Key + @"(\|[\w-"", ]+)*\}");
+                var regex = new Regex(@"\{" + marco.Key + @"(\|[\w-"",. ]+)*\}");
                 var matches = regex.Matches(result);
                 if (matches.Count == 0) continue;
 

@@ -3,10 +3,13 @@ using Microsoft.Extensions.Logging;
 using SkiaSharp;
 using System.IO.Compression;
 using System.Reflection;
+using System.Text;
+using System.Text.RegularExpressions;
 using Topten.RichTextKit;
 using YgoCardGenerator.Attribtues;
 using YgoCardGenerator.Persistences;
 using YgoCardGenerator.Persistences.Entities;
+using static SkiaSharp.HarfBuzz.SKShaper;
 
 namespace YgoCardGenerator.Commands
 {
@@ -53,7 +56,6 @@ namespace YgoCardGenerator.Commands
             {
                 var cardPackPath = Path.Combine(cardSet.BasePath, packPath);
                 var listCard = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(cardPackPath, CardSetConfig.CardIndexFileName)));
-
                 for (var i = 0; i < listCard.Count; i++)
                 {
                     var cardInputOptions = new TomlModelOptions { ConvertPropertyName = (name) => name.ToKebabCase() };
@@ -111,9 +113,9 @@ namespace YgoCardGenerator.Commands
 
             #endregion
 
-            #region [include files]
+            #region [public files]
 
-            await CopyIncludes(config);
+            await CopyPublicFiles(config);
 
             #endregion
 
@@ -150,7 +152,7 @@ namespace YgoCardGenerator.Commands
             #endregion
         }
 
-        protected async Task CopyIncludes(CardSetConfig config, string path = "")
+        protected async Task CopyPublicFiles(CardSetConfig config, string path = "")
         {
             var basePath = Path.Combine(config.BasePath, "include", path);
             if (!Directory.Exists(basePath)) return;
@@ -165,7 +167,7 @@ namespace YgoCardGenerator.Commands
                 var folderName = Path.GetFileName(folder);
                 if (!Directory.Exists(Path.Combine(config.ExportPath, path, folderName)))
                     Directory.CreateDirectory(Path.Combine(config.ExportPath, path, folderName));
-                await CopyIncludes(config, Path.Combine(path, folderName));
+                await CopyPublicFiles(config, Path.Combine(path, folderName));
             }
         }
 
@@ -370,9 +372,23 @@ namespace YgoCardGenerator.Commands
         {
             if (!Directory.Exists(Path.GetDirectoryName(card.ScriptPath)))
                 Directory.CreateDirectory(Path.GetDirectoryName(card.ScriptPath)!);
-            if (!File.Exists(card.ScriptPath))
+
+            var scripts = new List<string>();
+            if (File.Exists(card.ScriptPath))
             {
-                var scripts = new[]
+                string? line;
+                using var reader = new StreamReader(card.ScriptPath!);
+                {
+                    do
+                    {
+                        line = await reader.ReadLineAsync();
+                        if (line != null) scripts.Add(line);
+                    } while (line != null);
+                }
+            }
+            else
+            {
+                scripts = new List<string>
                 {
                     $"-- {card.Name}",
                     "local s, id = GetID()",
@@ -384,10 +400,24 @@ namespace YgoCardGenerator.Commands
                 await File.WriteAllLinesAsync(card.ScriptPath!, scripts);
             }
 
-            using var inputFile = File.OpenRead(card.ScriptPath!);
-            using var outputFile = File.Open(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), FileMode.OpenOrCreate, FileAccess.ReadWrite);
-            outputFile.SetLength(0);
-            await inputFile.CopyToAsync(outputFile);
+            var regex = new Regex(@"-- <include> ([\w-"",. ]+)");
+            for (var i = 0; i < scripts.Count; i++)
+            {
+                if (!regex.IsMatch(scripts[i])) continue;
+                var filePath = Path.Combine(card.PackPath, "script", "include", scripts[i][13..]);
+                if (!File.Exists(filePath)) continue;
+
+                using var reader = new StreamReader(filePath);
+                {
+                    scripts[i] = await reader.ReadToEndAsync();
+                }
+            }
+
+            using var writer = new StreamWriter(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), false);
+            {
+                foreach (var line in scripts)
+                    await writer.WriteLineAsync(line);
+            }
         }
 
         protected async Task GenerateCardImage(CardDataDto card, CardSetConfig config)
