@@ -133,7 +133,7 @@ namespace YgoCardGenerator.Commands
 
             #endregion
 
-            #region [Packing YPK]
+            #region [Packing]
 
             if (cardSet.ExportType == ExportTypes.MDPro3)
             {
@@ -142,6 +142,7 @@ namespace YgoCardGenerator.Commands
 
                 var sourceFolder = Path.Join(cardSet.ExportPath, cardSet.SetName);
                 var destinationFile = Path.Join(cardSet.ExportPath, $"{cardSet.SetName}.ypk");
+                File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExportPath, $"{cardSet.SetName}.cdb"), true);
                 if (File.Exists(destinationFile)) File.Delete(destinationFile);
                 ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
                 Directory.Delete(sourceFolder, true);
