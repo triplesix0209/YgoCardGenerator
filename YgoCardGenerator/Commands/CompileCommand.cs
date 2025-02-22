@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
+using System.Diagnostics;
+using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -38,11 +40,11 @@ namespace YgoCardGenerator.Commands
             // cardset
             var cardSet = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename)!;
-            cardSet.ExportPath ??= cardSet.BasePath;
+            cardSet.ExpansionPath ??= cardSet.BasePath;
             if (cardSet.ExportType == ExportTypes.MDPro3)
-                cardSet.CardDbPath = Path.Join(cardSet.ExportPath, cardSet.SetName, $"{cardSet.SetName}.cdb");
+                cardSet.CardDbPath = Path.Join(cardSet.ExpansionPath, cardSet.SetName, $"{cardSet.SetName}.cdb");
             else
-                cardSet.CardDbPath = Path.Join(cardSet.ExportPath, $"{cardSet.SetName}.cdb");
+                cardSet.CardDbPath = Path.Join(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb");
             cardSet.ValidateAndThrow();
             if (cardSet.BasePath == null || cardSet.Packs == null) return;
             var config = new CardSetConfig(cardSet);
@@ -140,9 +142,9 @@ namespace YgoCardGenerator.Commands
                 Logger.LogInformation($"Packing into [{cardSet.SetName}.ypk]");
                 Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
 
-                var sourceFolder = Path.Join(cardSet.ExportPath, cardSet.SetName);
-                var destinationFile = Path.Join(cardSet.ExportPath, $"{cardSet.SetName}.ypk");
-                File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExportPath, $"{cardSet.SetName}.cdb"), true);
+                var sourceFolder = Path.Join(cardSet.ExpansionPath, cardSet.SetName);
+                var destinationFile = Path.Join(cardSet.ExpansionPath, $"{cardSet.SetName}.ypk");
+                File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb"), true);
                 if (File.Exists(destinationFile)) File.Delete(destinationFile);
                 ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
                 Directory.Delete(sourceFolder, true);
@@ -158,14 +160,14 @@ namespace YgoCardGenerator.Commands
 
             var files = Directory.GetFiles(basePath);
             foreach (var file in files)
-                await CopyFile(file, Path.Combine(config.ExportPath, path, Path.GetFileName(file)));
+                await CopyFile(file, Path.Combine(config.ExpansionPath, path, Path.GetFileName(file)));
 
             var folders = Directory.GetDirectories(basePath);
             foreach (var folder in folders)
             {
                 var folderName = Path.GetFileName(folder);
-                if (!Directory.Exists(Path.Combine(config.ExportPath, path, folderName)))
-                    Directory.CreateDirectory(Path.Combine(config.ExportPath, path, folderName));
+                if (!Directory.Exists(Path.Combine(config.ExpansionPath, path, folderName)))
+                    Directory.CreateDirectory(Path.Combine(config.ExpansionPath, path, folderName));
                 await CopyPublicFiles(config, Path.Combine(path, folderName));
             }
         }
@@ -194,6 +196,21 @@ namespace YgoCardGenerator.Commands
                         await DrawFieldArtwork(card, config);
                 }
             }
+
+            if (cardSet.ExportType == ExportTypes.MDPro3)
+            {
+                if (!config.CloseupPath.IsNullOrWhiteSpace())
+                {
+                    var closeupPath = Path.Combine(card.PackPath, "closeup", $"{card.Key}.png");
+                    if (File.Exists(closeupPath)) await CopyFile(closeupPath, Path.Combine(config.CloseupPath, $"{card.Id}.png"));
+                }
+
+                if (!config.CutinPath.IsNullOrWhiteSpace())
+                {
+                    var cutinPath = Path.Combine(card.PackPath, "cutin", card.Key);
+                    if (Directory.Exists(cutinPath)) await CopyFolder(cutinPath, Path.Combine(config.CutinPath, card.Id.ToString()));
+                }
+            }
         }
 
         protected async Task CopyFile(string sourceFilePath, string destinationFilePath)
@@ -202,6 +219,17 @@ namespace YgoCardGenerator.Commands
             using var destinationFile = new FileStream(destinationFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             destinationFile.SetLength(0);
             await sourceFile.CopyToAsync(destinationFile);
+        }
+
+        protected async Task CopyFolder(string sourceFolder, string destinationFolder)
+        {
+            if (Directory.Exists(destinationFolder))
+                Directory.Delete(destinationFolder, true);
+            Directory.CreateDirectory(destinationFolder);
+
+            var sourceFiles = Directory.GetFiles(sourceFolder);
+            foreach (var sourceFile in sourceFiles)
+                await CopyFile(sourceFile, Path.Combine(destinationFolder, Path.GetFileName(sourceFile)));
         }
 
         protected async Task WriteCardDb(CardDataDto card, CardSetConfig config, DataContext db)

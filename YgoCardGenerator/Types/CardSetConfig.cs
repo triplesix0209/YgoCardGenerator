@@ -12,15 +12,17 @@ namespace YgoCardGenerator.Types
         {
             BasePath = input.BasePath!;
             ExportType = input.ExportType;
-            ExportPath = input.ExportPath!;
+            ExpansionPath = input.ExpansionPath!;
+            CloseupPath = input.CloseupPath;
+            CutinPath = input.CutinPath;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
 
             if (ExportType == ExportTypes.MDPro3)
-                ExportPath = Path.Combine(ExportPath, input.SetName);
+                ExpansionPath = Path.Combine(ExpansionPath, input.SetName);
 
-            ScriptPath = Path.Combine(ExportPath, "script");
-            PicPath = Path.Combine(ExportPath, "pics");
+            ScriptPath = Path.Combine(ExpansionPath, "script");
+            PicPath = Path.Combine(ExpansionPath, "pics");
             PicFieldPath = !input.PicFieldPath.IsNullOrWhiteSpace() ? input.PicFieldPath : Path.Combine(PicPath, "field");
 
             if (!input.Setcodes.IsNullOrEmpty())
@@ -38,7 +40,11 @@ namespace YgoCardGenerator.Types
 
         public ExportTypes ExportType { get; }
 
-        public string ExportPath { get; }
+        public string ExpansionPath { get; }
+
+        public string? CloseupPath { get; }
+
+        public string? CutinPath { get; }
 
         public string ScriptPath { get; }
 

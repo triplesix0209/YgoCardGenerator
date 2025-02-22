@@ -10,7 +10,11 @@ namespace YgoCardGenerator.Types
 
         public ExportTypes ExportType { get; set; }
 
-        public string? ExportPath { get; set; }
+        public string? ExpansionPath { get; set; }
+
+        public string? CloseupPath { get; set; }
+
+        public string? CutinPath { get; set; }
 
         public string? PicFieldPath { get; set; }
 
@@ -36,7 +40,7 @@ namespace YgoCardGenerator.Types
             RuleFor(x => x.ExportType)
                 .IsInEnum();
 
-            RuleFor(x => x.ExportPath)
+            RuleFor(x => x.ExpansionPath)
                 .NotEmpty();
 
             RuleFor(x => x.Setcodes)
