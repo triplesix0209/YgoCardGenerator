@@ -115,7 +115,8 @@ namespace YgoCardGenerator.Commands
 
             #region [public files]
 
-            await CopyPublicFiles(config);
+            await CopyPublicFiles(config, "expansion", config.ExpansionPath);
+            await CopyPublicFiles(config, "game", config.GamePath);
 
             #endregion
 
@@ -153,22 +154,22 @@ namespace YgoCardGenerator.Commands
             #endregion
         }
 
-        protected async Task CopyPublicFiles(CardSetConfig config, string path = "")
+        protected async Task CopyPublicFiles(CardSetConfig config, string source, string destination, string path = "")
         {
-            var basePath = Path.Combine(config.BasePath, "public", path);
+            var basePath = Path.Combine(config.BasePath, "public", source, path);
             if (!Directory.Exists(basePath)) return;
 
             var files = Directory.GetFiles(basePath);
             foreach (var file in files)
-                await CopyFile(file, Path.Combine(config.ExpansionPath, path, Path.GetFileName(file)));
+                await CopyFile(file, Path.Combine(destination, path, Path.GetFileName(file)));
 
             var folders = Directory.GetDirectories(basePath);
             foreach (var folder in folders)
             {
                 var folderName = Path.GetFileName(folder);
-                if (!Directory.Exists(Path.Combine(config.ExpansionPath, path, folderName)))
-                    Directory.CreateDirectory(Path.Combine(config.ExpansionPath, path, folderName));
-                await CopyPublicFiles(config, Path.Combine(path, folderName));
+                if (!Directory.Exists(Path.Combine(destination, path, folderName)))
+                    Directory.CreateDirectory(Path.Combine(destination, path, folderName));
+                await CopyPublicFiles(config, source, destination, Path.Combine(path, folderName));
             }
         }
 

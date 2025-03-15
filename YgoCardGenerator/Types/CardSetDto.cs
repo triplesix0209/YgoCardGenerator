@@ -10,6 +10,8 @@ namespace YgoCardGenerator.Types
 
         public ExportTypes ExportType { get; set; }
 
+        public string? GamePath { get; set; }
+
         public string? ExpansionPath { get; set; }
 
         public string? CloseupPath { get; set; }
@@ -39,6 +41,9 @@ namespace YgoCardGenerator.Types
 
             RuleFor(x => x.ExportType)
                 .IsInEnum();
+
+            RuleFor(x => x.GamePath)
+                .NotEmpty();
 
             RuleFor(x => x.ExpansionPath)
                 .NotEmpty();

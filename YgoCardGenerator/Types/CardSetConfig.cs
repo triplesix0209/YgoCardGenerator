@@ -12,6 +12,7 @@ namespace YgoCardGenerator.Types
         {
             BasePath = input.BasePath!;
             ExportType = input.ExportType;
+            GamePath = input.GamePath!;
             ExpansionPath = input.ExpansionPath!;
             CloseupPath = input.CloseupPath;
             CutinPath = input.CutinPath;
@@ -39,6 +40,8 @@ namespace YgoCardGenerator.Types
         public string BasePath { get; }
 
         public ExportTypes ExportType { get; }
+
+        public string GamePath { get; }
 
         public string ExpansionPath { get; }
 
