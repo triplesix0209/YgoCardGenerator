@@ -344,7 +344,8 @@ namespace YgoCardGenerator.Commands
                     }
                     else
                     {
-                        text.Desc = "[ Pendulum Effect ]\n" + card.PendulumEffect + "\n";
+                        text.Desc = $"Pendulum Scale = {card.LeftScale}\n";
+                        text.Desc += "[ Pendulum Effect ]\n" + card.PendulumEffect + "\n";
                         if (!card.Effect.IsNullOrWhiteSpace())
                         {
                             text.Desc += "----------------------------------------\n"
