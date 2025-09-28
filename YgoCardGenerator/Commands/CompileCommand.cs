@@ -243,7 +243,12 @@ namespace YgoCardGenerator.Commands
 
             data.Ot = 0;
             if (card.CardLimit.IsNullOrEmpty())
-                data.Ot = (int)CardLimits.Custom;
+            {
+                if (config.ExportType == ExportTypes.EdoPro)
+                    data.Ot = (int)CardLimits.Custom;
+                else
+                    data.Ot = (int)CardLimits.Anime;
+            }
             else
             {
                 foreach (var cardLimit in card.CardLimit)
