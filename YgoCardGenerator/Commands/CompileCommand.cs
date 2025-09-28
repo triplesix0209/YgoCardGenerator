@@ -64,10 +64,18 @@ namespace YgoCardGenerator.Commands
 
                     var cardData = cardInput.ToCardDataDto(cardPackPath);
                     cardData.ValidateAndThrow();
-
-                    if (cards.Any(x => x.Id == cardData.Id)) throw new Exception($"duplicate card {cardData.Id} in {packPath}");
+                    if (cards.Any(x => x.Id == cardData.Id))
+                        throw new Exception($"duplicate card {cardData.Id} in {packPath}");
 
                     cardIds.Add(cardData.Id);
+                    if (cardData.CardLimit == null || cardData.CardLimit.Length == 0)
+                    {
+                        if (config.ExportType == ExportTypes.MDPro3)
+                            cardData.CardLimit = new[] { CardLimits.DiyAnime };
+                        else
+                            cardData.CardLimit = new[] { CardLimits.Custom };
+                    }
+
                     if (cardSet.SkipCompilePacks.IsNullOrEmpty() || !cardSet.SkipCompilePacks.Any(x => x == packPath))
                         cards.Enqueue(cardData);
                 }
@@ -242,14 +250,7 @@ namespace YgoCardGenerator.Commands
             data.Category = 0;
 
             data.Ot = 0;
-            if (card.CardLimit.IsNullOrEmpty())
-            {
-                if (config.ExportType == ExportTypes.EdoPro)
-                    data.Ot = (int)CardLimits.Custom;
-                else
-                    data.Ot = (int)CardLimits.Anime;
-            }
-            else
+            if (!card.CardLimit.IsNullOrEmpty())
             {
                 foreach (var cardLimit in card.CardLimit)
                     data.Ot += (int)cardLimit;

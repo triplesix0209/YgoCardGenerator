@@ -83,7 +83,7 @@
                 NameShadowColor = NameShadowColor,
                 Template = Template,
                 Rarity = Rarity,
-                CardLimit = CardLimit.MatchEnum<CardLimits>() ?? new[] { CardLimits.Custom },
+                CardLimit = CardLimit.MatchEnum<CardLimits>() ?? Array.Empty<CardLimits>(),
                 CardType = Type.FirstMatchEnum<CardTypes>() ?? CardTypes.None,
                 Strings = Strings,
                 ShowLevel = ShowLevel,
