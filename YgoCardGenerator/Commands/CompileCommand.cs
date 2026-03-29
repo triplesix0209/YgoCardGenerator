@@ -454,42 +454,50 @@ namespace YgoCardGenerator.Commands
             if (card.Template == CardTemplates.Overframe)
             {
                 using var paint = new SKPaint();
+                paint.IsAntialias = true;
+                paint.FilterQuality = SKFilterQuality.High;
+
+                var artworkImage = SKImage.FromEncodedData(await File.ReadAllBytesAsync(card.ArtworkPath!));
+
+                var sourceWidth = artworkImage.Width;
+                var sourceHeight = artworkImage.Height;
+                var destWidth = config.CardWidth;
+                var destHeight = sourceHeight * ((float)destWidth / sourceWidth);
+                var startX = 0;
+                var startY = (config.CardHeight - destHeight) / 2.0f;
+                var destRect = new SKRect(startX, startY, startX + destWidth, startY + destHeight);
+                canvas.DrawImage(artworkImage, destRect, paint);
+
+                await SaveImage(surface, outputFilename);
+            }
+            else
+            {
+                if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Auto)
+                    card.PendulumSize = PendulumSizes.Medium;
+
+                await DrawCardType(canvas, card, config);
+                await DrawCardArtwork(canvas, card, config);
+                await DrawCardFrame(canvas, card, config);
+                await DrawCardName(canvas, card, config);
+                if (card.IsSpellTrap)
                 {
-                    paint.IsAntialias = true;
-                    paint.FilterQuality = SKFilterQuality.High;
-
-                    var artworkImage = SKImage.FromEncodedData(await File.ReadAllBytesAsync(card.ArtworkPath!));
-                    canvas.DrawImage(artworkImage, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
-                    await SaveImage(surface, outputFilename);
-                    return;
+                    await DrawSpellTrapType(canvas, card, config);
+                    await DrawSpellTrapEffect(canvas, card, config);
                 }
-            }
+                else if (card.IsMonster)
+                {
+                    await DrawMonsterAttribute(canvas, card, config);
+                    await DrawMonsterLevelRankLink(canvas, card, config);
+                    await DrawMonsterPendulumScale(canvas, card, config);
+                    await DrawMonsterRace(canvas, card, config);
+                    await DrawMonsterAtkDef(canvas, card, config);
+                    await DrawMonsterEffect(canvas, card, config);
+                    await DrawMonsterPendulumEffect(canvas, card, config);
+                }
+                if (card.IsLink) await DrawLinkArrow(canvas, card, config);
 
-            if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Auto)
-                card.PendulumSize = PendulumSizes.Medium;
-
-            await DrawCardType(canvas, card, config);
-            await DrawCardArtwork(canvas, card, config);
-            await DrawCardFrame(canvas, card, config);
-            await DrawCardName(canvas, card, config);
-            if (card.IsSpellTrap)
-            {
-                await DrawSpellTrapType(canvas, card, config);
-                await DrawSpellTrapEffect(canvas, card, config);
+                await SaveImage(surface, outputFilename);
             }
-            else if (card.IsMonster)
-            {
-                await DrawMonsterAttribute(canvas, card, config);
-                await DrawMonsterLevelRankLink(canvas, card, config);
-                await DrawMonsterPendulumScale(canvas, card, config);
-                await DrawMonsterRace(canvas, card, config);
-                await DrawMonsterAtkDef(canvas, card, config);
-                await DrawMonsterEffect(canvas, card, config);
-                await DrawMonsterPendulumEffect(canvas, card, config);
-            }
-            if (card.IsLink) await DrawLinkArrow(canvas, card, config);
-
-            await SaveImage(surface, outputFilename);
         }
 
         protected async Task DrawCardType(SKCanvas canvas, CardDataDto card, CardSetConfig config)
