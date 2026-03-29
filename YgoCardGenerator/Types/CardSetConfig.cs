@@ -15,6 +15,7 @@ namespace YgoCardGenerator.Types
             ExpansionPath = Path.Combine(input.ExpansionPath!, input.SetName);
             CloseupPath = input.CloseupPath;
             CutinPath = input.CutinPath;
+            OverframePath = input.OverframePath;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
 
@@ -42,6 +43,8 @@ namespace YgoCardGenerator.Types
         public string? CloseupPath { get; }
 
         public string? CutinPath { get; }
+
+        public string? OverframePath { get; }
 
         public string ScriptPath { get; }
 

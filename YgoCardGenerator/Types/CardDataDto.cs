@@ -24,7 +24,7 @@
 
         public string? NameShadowColor { get; set; }
 
-        public CardTemplates Template { get; set; } = CardTemplates.CardFrame;
+        public CardTemplates Template { get; set; } = CardTemplates.Normal;
 
         public CardRarities Rarity { get; set; } = CardRarities.Common;
 

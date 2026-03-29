@@ -16,6 +16,8 @@ namespace YgoCardGenerator.Types
 
         public string? CutinPath { get; set; }
 
+        public string? OverframePath { get; set; }
+
         public string? PicFieldPath { get; set; }
 
         public string[]? Setcodes { get; set; }

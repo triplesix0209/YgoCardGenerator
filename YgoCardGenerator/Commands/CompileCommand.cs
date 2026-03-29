@@ -193,6 +193,12 @@ namespace YgoCardGenerator.Commands
                 }
             }
 
+            if (card.Template == CardTemplates.Overframe && !config.OverframePath.IsNullOrWhiteSpace())
+            {
+                var picPath = Path.Combine(config.ExpansionPath, "pics", $"{card.Id}.png");
+                await CopyFile(picPath, Path.Combine(config.OverframePath, $"{card.Id}.png"));
+            }
+
             if (!config.CloseupPath.IsNullOrWhiteSpace())
             {
                 var closeupPath = Path.Combine(card.PackPath, "closeup", $"{card.Key}.png");
@@ -445,7 +451,7 @@ namespace YgoCardGenerator.Commands
             var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
             var canvas = surface.Canvas;
 
-            if (card.Template == CardTemplates.OverFrame)
+            if (card.Template == CardTemplates.Overframe)
             {
                 using var paint = new SKPaint();
                 {

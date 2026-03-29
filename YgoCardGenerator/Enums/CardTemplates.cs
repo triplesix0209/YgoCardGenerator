@@ -1,12 +1,8 @@
-﻿using YgoCardGenerator.Attribtues;
-
-namespace YgoCardGenerator.Enums
+﻿namespace YgoCardGenerator.Enums
 {
     public enum CardTemplates
     {
-        CardFrame = 0,
-
-        [EnumInfo(Text = "over-frame")]
-        OverFrame = 1,
+        Normal = 0,
+        Overframe = 1,
     }
 }
