@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -41,10 +39,7 @@ namespace YgoCardGenerator.Commands
             var cardSet = Toml.ToModel<CardSetDto>(await File.ReadAllTextAsync(cardSetFilename!));
             cardSet.BasePath = Path.GetDirectoryName(cardSetFilename)!;
             cardSet.ExpansionPath ??= cardSet.BasePath;
-            if (cardSet.ExportType == ExportTypes.MDPro3)
-                cardSet.CardDbPath = Path.Join(cardSet.ExpansionPath, cardSet.SetName, $"{cardSet.SetName}.cdb");
-            else
-                cardSet.CardDbPath = Path.Join(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb");
+            cardSet.CardDbPath = Path.Join(cardSet.ExpansionPath, cardSet.SetName, $"{cardSet.SetName}.cdb");
             cardSet.ValidateAndThrow();
             if (cardSet.BasePath == null || cardSet.Packs == null) return;
             var config = new CardSetConfig(cardSet);
@@ -69,12 +64,7 @@ namespace YgoCardGenerator.Commands
 
                     cardIds.Add(cardData.Id);
                     if (cardData.CardLimit == null || cardData.CardLimit.Length == 0)
-                    {
-                        if (config.ExportType == ExportTypes.MDPro3)
-                            cardData.CardLimit = new[] { CardLimits.DiyAnime };
-                        else
-                            cardData.CardLimit = new[] { CardLimits.Custom };
-                    }
+                        cardData.CardLimit = [CardLimits.Custom];
 
                     if (cardSet.SkipCompilePacks.IsNullOrEmpty() || !cardSet.SkipCompilePacks.Any(x => x == packPath))
                         cards.Enqueue(cardData);
@@ -146,18 +136,15 @@ namespace YgoCardGenerator.Commands
 
             #region [Packing]
 
-            if (cardSet.ExportType == ExportTypes.MDPro3)
-            {
-                Logger.LogInformation($"Packing into [{cardSet.SetName}.ypk]");
-                Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
+            Logger.LogInformation($"Packing into [{cardSet.SetName}.ypk]");
+            Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
 
-                var sourceFolder = Path.Join(cardSet.ExpansionPath, cardSet.SetName);
-                var destinationFile = Path.Join(cardSet.ExpansionPath, $"{cardSet.SetName}.ypk");
-                File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb"), true);
-                if (File.Exists(destinationFile)) File.Delete(destinationFile);
-                ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
-                Directory.Delete(sourceFolder, true);
-            }
+            var sourceFolder = Path.Join(cardSet.ExpansionPath, cardSet.SetName);
+            var destinationFile = Path.Join(cardSet.ExpansionPath, $"{cardSet.SetName}.ypk");
+            File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb"), true);
+            if (File.Exists(destinationFile)) File.Delete(destinationFile);
+            ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
+            Directory.Delete(sourceFolder, true);
 
             #endregion
         }
@@ -206,19 +193,16 @@ namespace YgoCardGenerator.Commands
                 }
             }
 
-            if (cardSet.ExportType == ExportTypes.MDPro3)
+            if (!config.CloseupPath.IsNullOrWhiteSpace())
             {
-                if (!config.CloseupPath.IsNullOrWhiteSpace())
-                {
-                    var closeupPath = Path.Combine(card.PackPath, "closeup", $"{card.Key}.png");
-                    if (File.Exists(closeupPath)) await CopyFile(closeupPath, Path.Combine(config.CloseupPath, $"{card.Id}.png"));
-                }
+                var closeupPath = Path.Combine(card.PackPath, "closeup", $"{card.Key}.png");
+                if (File.Exists(closeupPath)) await CopyFile(closeupPath, Path.Combine(config.CloseupPath, $"{card.Id}.png"));
+            }
 
-                if (!config.CutinPath.IsNullOrWhiteSpace())
-                {
-                    var cutinPath = Path.Combine(card.PackPath, "cutin", card.Key);
-                    if (Directory.Exists(cutinPath)) await CopyFolder(cutinPath, Path.Combine(config.CutinPath, card.Id.ToString()));
-                }
+            if (!config.CutinPath.IsNullOrWhiteSpace())
+            {
+                var cutinPath = Path.Combine(card.PackPath, "cutin", card.Key);
+                if (Directory.Exists(cutinPath)) await CopyFolder(cutinPath, Path.Combine(config.CutinPath, card.Id.ToString()));
             }
         }
 

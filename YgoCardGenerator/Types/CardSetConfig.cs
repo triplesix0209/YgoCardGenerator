@@ -11,16 +11,12 @@ namespace YgoCardGenerator.Types
         public CardSetConfig(CardSetDto input)
         {
             BasePath = input.BasePath!;
-            ExportType = input.ExportType;
             GamePath = input.GamePath!;
-            ExpansionPath = input.ExpansionPath!;
+            ExpansionPath = Path.Combine(input.ExpansionPath!, input.SetName);
             CloseupPath = input.CloseupPath;
             CutinPath = input.CutinPath;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
-
-            if (ExportType == ExportTypes.MDPro3)
-                ExpansionPath = Path.Combine(ExpansionPath, input.SetName);
 
             ScriptPath = Path.Combine(ExpansionPath, "script");
             PicPath = Path.Combine(ExpansionPath, "pics");
@@ -38,8 +34,6 @@ namespace YgoCardGenerator.Types
         }
 
         public string BasePath { get; }
-
-        public ExportTypes ExportType { get; }
 
         public string GamePath { get; }
 
