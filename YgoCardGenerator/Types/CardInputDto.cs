@@ -56,8 +56,6 @@
 
         public string? PendulumEffect { get; set; }
 
-        public PendulumSizes PendulumSize { get; set; } = PendulumSizes.Auto;
-
         public string[]? Strings { get; set; }
 
         public bool Compose { get; set; } = true;
@@ -127,7 +125,6 @@
                 result.Flavor = Flavor?.Trim();
                 result.Effect = Effect?.Trim();
                 result.PendulumEffect = PendulumEffect?.Trim();
-                result.PendulumSize = PendulumSize;
 
                 if (result.IsMonsterType(MonsterTypes.Token))
                     result.GenerateScript = false;

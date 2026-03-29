@@ -144,7 +144,10 @@ namespace YgoCardGenerator.Commands
             File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb"), true);
             if (File.Exists(destinationFile)) File.Delete(destinationFile);
             ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
+
+            #if !DEBUG
             Directory.Delete(sourceFolder, true);
+            #endif
 
             #endregion
         }
@@ -193,10 +196,17 @@ namespace YgoCardGenerator.Commands
                 }
             }
 
-            if (card.Template == CardTemplates.Overframe && !config.OverframePath.IsNullOrWhiteSpace())
+            if (!config.OverframePath.IsNullOrWhiteSpace())
             {
-                var picPath = Path.Combine(config.ExpansionPath, "pics", $"{card.Id}.png");
-                await CopyFile(picPath, Path.Combine(config.OverframePath, $"{card.Id}.png"));
+                var overframePath = Path.Combine(config.OverframePath, $"{card.Id}.png");
+                if (card.Template == CardTemplates.Overframe)
+                {
+                    var picPath = Path.Combine(config.ExpansionPath, "pics", $"{card.Id}.png");
+                    await CopyFile(picPath, overframePath);
+                } else if (File.Exists(overframePath))
+                {
+                    File.Delete(overframePath);
+                }
             }
 
             if (!config.CloseupPath.IsNullOrWhiteSpace())
@@ -472,9 +482,6 @@ namespace YgoCardGenerator.Commands
             }
             else
             {
-                if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Auto)
-                    card.PendulumSize = PendulumSizes.Medium;
-
                 await DrawCardType(canvas, card, config);
                 await DrawCardArtwork(canvas, card, config);
                 await DrawCardFrame(canvas, card, config);
@@ -537,20 +544,20 @@ namespace YgoCardGenerator.Commands
             using var sourceBitmap = SKBitmap.Decode(await File.ReadAllBytesAsync(card.ArtworkPath!));
             if (!card.IsMonsterType(MonsterTypes.Pendulum))
             {
-                var left = 83;
-                var top = 186;
-                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(528, 528), SKFilterQuality.High);
+                var left = 97;
+                var top = 217;
+                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(619, 619), SKFilterQuality.High);
                 using var scaledImage = SKImage.FromBitmap(scaledBitmap);
                 canvas.DrawImage(scaledImage, left, top, paint);
             }
             else
             {
-                var left = 44;
-                var top = 182;
+                var left = 52;
+                var top = 214;
                 var radio = (float)sourceBitmap.Width / sourceBitmap.Height;
-                var cropHeight = card.PendulumSize == PendulumSizes.Small ? 486 : 449;
+                var cropHeight = 525;
 
-                var width = 605;
+                var width = 708;
                 var height = (int)(width / radio);
                 if (height < cropHeight)
                 {
@@ -579,7 +586,7 @@ namespace YgoCardGenerator.Commands
 
             var layout = "base";
             if (card.IsMonsterType(MonsterTypes.Pendulum))
-                layout = "pendulum-" + card.PendulumSize.ToString().ToKebabCase();
+                layout = "pendulum";
 
             using var cardFrame = GetResourceImage("card_frame", card.Rarity.ToString().ToSnakeSpaceCase(), layout);
             canvas.DrawImage(cardFrame, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
@@ -625,19 +632,19 @@ namespace YgoCardGenerator.Commands
 
             var textBound = new SKRect();
             var textWidth = paint.MeasureText(card.Name, ref textBound);
-            if (textWidth <= 525)
+            if (textWidth <= 615)
             {
                 if (shadowColor.HasValue)
                 {
                     paint.Color = shadowColor.Value;
-                    canvas.DrawText(card.Name, 50, 100, paint);
+                    canvas.DrawText(card.Name, 60, 110, paint);
                     paint.Color = textColor;
-                    canvas.DrawText(card.Name, 48, 98, paint);
+                    canvas.DrawText(card.Name, 58, 108, paint);
                 }
                 else
                 {
                     paint.Color = textColor;
-                    canvas.DrawText(card.Name, 50, 100, paint);
+                    canvas.DrawText(card.Name, 60, 110, paint);
                 }
 
                 return Task.CompletedTask;
@@ -645,7 +652,7 @@ namespace YgoCardGenerator.Commands
 
             if (shadowColor.HasValue)
             {
-                var shadowImageInfo = new SKImageInfo(525, 45);
+                var shadowImageInfo = new SKImageInfo(615, 45);
                 using var shadowSurface = SKSurface.Create(shadowImageInfo);
                 using var shadowCanvas = shadowSurface.Canvas;
                 shadowCanvas.Scale(shadowImageInfo.Width / textBound.Width, shadowImageInfo.Height / textBound.Height);
@@ -655,10 +662,10 @@ namespace YgoCardGenerator.Commands
                     shadowCanvas.DrawText(card.Name, 0, 0, paint);
                 }
                 using var shadowImage = shadowSurface.Snapshot();
-                canvas.DrawImage(shadowImage, 52, 62, paint);
+                canvas.DrawImage(shadowImage, 62, 72, paint);
             }
 
-            var textImageInfo = new SKImageInfo(525, 45);
+            var textImageInfo = new SKImageInfo(615, 45);
             using var textSurface = SKSurface.Create(textImageInfo);
             using var textCanvas = textSurface.Canvas;
             textCanvas.Scale(textImageInfo.Width / textBound.Width, textImageInfo.Height / textBound.Height);
@@ -668,7 +675,7 @@ namespace YgoCardGenerator.Commands
                 textCanvas.DrawText(card.Name, 0, 0, paint);
             }
             using var textImage = textSurface.Snapshot();
-            canvas.DrawImage(textImage, 50, 60, paint);
+            canvas.DrawImage(textImage, 60, 70, paint);
 
             return Task.CompletedTask;
         }
@@ -700,8 +707,8 @@ namespace YgoCardGenerator.Commands
         protected Task DrawSpellTrapEffect(SKCanvas canvas, CardDataDto card, CardSetConfig config)
         {
             var paint = new TextPaintOptions { Edging = SKFontEdging.SubpixelAntialias };
-            var textblock = new TextBlock { MaxWidth = 593, MaxHeight = 190 };
-            var point = new SKPoint { X = 50, Y = 760 };
+            var textblock = new TextBlock { MaxWidth = 693, MaxHeight = 215 };
+            var point = new SKPoint { X = 60, Y = 895 };
             var style = new Style
             {
                 TextColor = SKColors.Black,
@@ -740,13 +747,13 @@ namespace YgoCardGenerator.Commands
             paint.IsAntialias = true;
             paint.Typeface = SKTypeface.FromFamilyName("EurostileCandyW01");
             paint.FakeBoldText = true;
-            paint.TextSize = 26;
+            paint.TextSize = 30;
 
             if (card.IsMonsterType(MonsterTypes.Link) && card.LinkRating.HasValue)
             {
                 using var image = GetResourceImage("link-label");
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
-                canvas.DrawText(card.LinkRating.ToString(), 617, 947, paint);
+                canvas.DrawText(card.LinkRating.ToString(), 724, 1107, paint);
             }
             else if (card.IsMonsterType(MonsterTypes.Xyz) && card.Rank.HasValue && card.Rank > 0 && card.ShowRank)
             {
@@ -757,11 +764,6 @@ namespace YgoCardGenerator.Commands
             {
                 using var image = GetResourceImage("level_rank", $"lvl{card.Level}");
                 canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
-            }
-
-            if (card.IsMonsterType(MonsterTypes.Pendulum))
-            {
-
             }
 
             return Task.CompletedTask;
@@ -777,16 +779,13 @@ namespace YgoCardGenerator.Commands
             paint.Typeface = SKTypeface.FromFamilyName("Yu-Gi-Oh! Matrix Small Caps 1");
             paint.TextSize = 60;
 
-            var top = 730;
-            if (card.PendulumSize == PendulumSizes.Large) top = 750;
-            else if (card.PendulumSize == PendulumSizes.Small) top = 745;
-
+            var top = 850;
             var leftScale = card.LeftScale?.ToString() ?? "?";
-            var leftPos = 60 - ((leftScale.Length - 1) * 15);
+            var leftPos = 70 - ((leftScale.Length - 1) * 15);
             canvas.DrawText(leftScale, leftPos, top, paint);
 
             var rightScale = card.RightScale?.ToString() ?? "?";
-            var rightPos = 613 - ((leftScale.Length - 1) * 15);
+            var rightPos = 720 - ((leftScale.Length - 1) * 15);
             canvas.DrawText(rightScale, rightPos, top, paint);
 
             return Task.CompletedTask;
@@ -833,26 +832,23 @@ namespace YgoCardGenerator.Commands
             monsterTypes.Remove(MonsterTypes.Nomi);
             var monsterTypeText = $"[{string.Join("/", monsterTypes.Select(x => Helpers.GetEnumText(x.GetType(), x)))}]";
 
-            var top = 785;
-            if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Large)
-                top = 810;
-
+            var top = 915;
             var textBound = new SKRect();
             var textWidth = paint.MeasureText(monsterTypeText, ref textBound);
-            if (textWidth <= 595)
+            if (textWidth <= 690)
             {
-                canvas.DrawText(monsterTypeText, 50, top, paint);
+                canvas.DrawText(monsterTypeText, 60, top, paint);
                 return Task.CompletedTask;
             }
 
-            var textImageInfo = new SKImageInfo(588, 24);
+            var textImageInfo = new SKImageInfo(690, 24);
             using var textSurface = SKSurface.Create(textImageInfo);
             using var textCanvas = textSurface.Canvas;
             textCanvas.Scale(textImageInfo.Width / textBound.Width, textImageInfo.Height / textBound.Height);
             textCanvas.Translate(-textBound.Left, -textBound.Top);
             textCanvas.DrawText(monsterTypeText, 0, 0, paint);
             using var textImage = textSurface.Snapshot();
-            canvas.DrawImage(textImage, 52, top - 19, paint);
+            canvas.DrawImage(textImage, 60, top - 19, paint);
             return Task.CompletedTask;
         }
 
@@ -862,20 +858,20 @@ namespace YgoCardGenerator.Commands
             paint.FilterQuality = SKFilterQuality.High;
             paint.IsAntialias = true;
             paint.Typeface = SKTypeface.FromFamilyName("MatrixBoldSmallCaps");
-            paint.TextSize = 28;
+            paint.TextSize = 30;
 
             using var image = GetResourceImage("atkdef-line");
             canvas.DrawImage(image, new SKRectI(0, 0, config.CardWidth, config.CardHeight), paint);
 
             var atk = (card.Atk?.ToString() ?? "?").PadLeft(4, ' ');
-            canvas.DrawText("ATK/", 385, 947, paint);
-            canvas.DrawText(atk, 440, 947, paint);
+            canvas.DrawText("ATK/", 485, 1108, paint);
+            canvas.DrawText(atk, 540, 1108, paint);
 
             if (!card.IsLink)
             {
                 var def = (card.Def?.ToString() ?? "?").PadLeft(4, ' ');
-                canvas.DrawText("DEF/", 530, 947, paint);
-                canvas.DrawText(def, 585, 947, paint);
+                canvas.DrawText("DEF/", 630, 1108, paint);
+                canvas.DrawText(def, 685, 1108, paint);
             }
 
             return Task.CompletedTask;
@@ -884,20 +880,14 @@ namespace YgoCardGenerator.Commands
         protected Task DrawMonsterEffect(SKCanvas canvas, CardDataDto card, CardSetConfig config)
         {
             var paint = new TextPaintOptions { Edging = SKFontEdging.SubpixelAntialias };
-            var textblock = new TextBlock { MaxWidth = 593, MaxHeight = 130 };
-            var point = new SKPoint { X = 50, Y = 790 };
+            var textblock = new TextBlock { MaxWidth = 693, MaxHeight = 155 };
+            var point = new SKPoint { X = 60, Y = 920 };
             var style = new Style
             {
                 TextColor = SKColors.Black,
                 FontFamily = card.Effect.IsNullOrWhiteSpace() ? "Yu-Gi-Oh! StoneSerif LT" : "Yu-Gi-Oh! Matrix Book",
                 FontSize = 20,
             };
-
-            if (card.IsMonsterType(MonsterTypes.Pendulum) && card.PendulumSize == PendulumSizes.Large)
-            {
-                point.Y = 815;
-                textblock.MaxHeight = 105;
-            }
 
             textblock.AddText(card.Effect ?? card.Flavor, style);
             while (textblock.Truncated && style.FontSize > 0)
@@ -915,24 +905,14 @@ namespace YgoCardGenerator.Commands
             if (!card.IsMonsterType(MonsterTypes.Pendulum) || card.PendulumEffect.IsNullOrWhiteSpace()) return Task.CompletedTask;
 
             var paint = new TextPaintOptions { Edging = SKFontEdging.SubpixelAntialias };
-            var textblock = new TextBlock { MaxWidth = 483, MaxHeight = 115 };
-            var point = new SKPoint { X = 105, Y = 635 };
+            var textblock = new TextBlock { MaxWidth = 560, MaxHeight = 130 };
+            var point = new SKPoint { X = 125, Y = 748 };
             var style = new Style
             {
                 TextColor = SKColors.Black,
                 FontFamily = "Yu-Gi-Oh! Matrix Book",
                 FontSize = 20,
             };
-
-            if (card.PendulumSize == PendulumSizes.Large)
-            {
-                textblock.MaxHeight = 140;
-            }
-            else if (card.PendulumSize == PendulumSizes.Small)
-            {
-                point.Y = 670;
-                textblock.MaxHeight = 80;
-            }
 
             textblock.AddText(card.PendulumEffect, style);
             while (textblock.Truncated && style.FontSize > 0)

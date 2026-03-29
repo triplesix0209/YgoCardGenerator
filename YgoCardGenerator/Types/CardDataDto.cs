@@ -66,8 +66,6 @@
 
         public int? Def { get; set; }
 
-        public PendulumSizes PendulumSize { get; set; } = PendulumSizes.Auto;
-
         public string[]? Strings { get; set; }
 
         public bool GeneratePic { get; set; } = true;
