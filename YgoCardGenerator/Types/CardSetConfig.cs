@@ -52,9 +52,9 @@ namespace YgoCardGenerator.Types
 
         public string PicFieldPath { get; }
 
-        public int CardWidth => 694;
+        public int CardWidth => 813;
 
-        public int CardHeight => 1013;
+        public int CardHeight => 1185;
 
         public Dictionary<string, long> SetCodes { get; }
 

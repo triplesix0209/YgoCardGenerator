@@ -516,7 +516,7 @@ namespace YgoCardGenerator.Commands
             else
             {
                 using var sourceBitmap = SKBitmap.Decode(await File.ReadAllBytesAsync(card.FramePath));
-                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(694, 1013), SKFilterQuality.High);
+                using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(813, 1185), SKFilterQuality.High);
                 using var scaledImage = SKImage.FromBitmap(scaledBitmap);
                 canvas.DrawImage(scaledImage, 0, 0, paint);
             }
