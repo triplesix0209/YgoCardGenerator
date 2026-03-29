@@ -445,7 +445,7 @@ namespace YgoCardGenerator.Commands
             var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
             var canvas = surface.Canvas;
 
-            if (card.Template == CardTemplates.Artwork)
+            if (card.Template == CardTemplates.OverFrame)
             {
                 using var paint = new SKPaint();
                 {

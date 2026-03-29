@@ -80,24 +80,6 @@ namespace YgoCardGenerator.Enums
         Cyberse,
 
         [EnumInfo(Code = 0x2000000)]
-        Illusionist,
-
-        [EnumInfo(Code = 0x4000000)]
-        Cyborg,
-
-        [EnumInfo(Code = 0x8000000, Text = "Magical Knight")]
-        MagicalKnight,
-
-        [EnumInfo(Code = 0x10000000, Text = "High Dragon")]
-        HighDragon,
-
-        [EnumInfo(Code = 0x20000000, Text = "Omega Psychic")]
-        OmegaPsychic,
-
-        [EnumInfo(Code = 0x40000000, Text = "Celestial Warrior")]
-        CelestialWarrior,
-
-        [EnumInfo(Code = 0x80000000)]
-        Galaxy,
+        Illusion,
     }
 }
