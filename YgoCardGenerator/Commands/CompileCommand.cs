@@ -457,30 +457,6 @@ namespace YgoCardGenerator.Commands
             using var surface = SKSurface.Create(new SKImageInfo(config.CardWidth, config.CardHeight));
             var canvas = surface.Canvas;
 
-            await DrawCardType(canvas, card, config);
-            await DrawCardArtwork(canvas, card, config);
-            await DrawCardFrame(canvas, card, config);
-            await DrawCardName(canvas, card, config);
-            if (card.IsSpellTrap)
-            {
-                await DrawSpellTrapType(canvas, card, config);
-                await DrawSpellTrapEffect(canvas, card, config);
-            }
-            else if (card.IsMonster)
-            {
-                await DrawMonsterAttribute(canvas, card, config);
-                await DrawMonsterLevelRankLink(canvas, card, config);
-                await DrawMonsterPendulumScale(canvas, card, config);
-                await DrawMonsterRace(canvas, card, config);
-                await DrawMonsterAtkDef(canvas, card, config);
-                await DrawMonsterEffect(canvas, card, config);
-                await DrawMonsterPendulumEffect(canvas, card, config);
-            }
-            if (card.IsLink) await DrawLinkArrow(canvas, card, config);
-
-            var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
-            await SaveImage(surface, outputFilename);
-
             if (card.Template == CardTemplates.Overframe)
             {
                 using var paint = new SKPaint();
@@ -498,8 +474,34 @@ namespace YgoCardGenerator.Commands
                 var destRect = new SKRect(startX, startY, startX + destWidth, startY + destHeight);
                 canvas.DrawImage(artworkImage, destRect, paint);
 
-                var outputOverframeFilename = Path.Combine(config.OverframePath!, $"{card.Id}.png");
-                await SaveImage(surface, outputOverframeFilename);
+                var outputFilename = Path.Combine(config.OverframePath!, $"{card.Id}");
+                await SaveImage(surface, outputFilename);
+            }
+            else
+            {
+                await DrawCardType(canvas, card, config);
+                await DrawCardArtwork(canvas, card, config);
+                await DrawCardFrame(canvas, card, config);
+                await DrawCardName(canvas, card, config);
+                if (card.IsSpellTrap)
+                {
+                    await DrawSpellTrapType(canvas, card, config);
+                    await DrawSpellTrapEffect(canvas, card, config);
+                }
+                else if (card.IsMonster)
+                {
+                    await DrawMonsterAttribute(canvas, card, config);
+                    await DrawMonsterLevelRankLink(canvas, card, config);
+                    await DrawMonsterPendulumScale(canvas, card, config);
+                    await DrawMonsterRace(canvas, card, config);
+                    await DrawMonsterAtkDef(canvas, card, config);
+                    await DrawMonsterEffect(canvas, card, config);
+                    await DrawMonsterPendulumEffect(canvas, card, config);
+                }
+                if (card.IsLink) await DrawLinkArrow(canvas, card, config);
+
+                var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
+                await SaveImage(surface, outputFilename);
             }
         }
 
