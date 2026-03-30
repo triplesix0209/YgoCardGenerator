@@ -152,9 +152,9 @@ namespace YgoCardGenerator.Commands
             if (File.Exists(destinationFile)) File.Delete(destinationFile);
             ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
 
-            #if !DEBUG
+#if !DEBUG
             Directory.Delete(sourceFolder, true);
-            #endif
+#endif
 
             #endregion
         }
@@ -194,25 +194,15 @@ namespace YgoCardGenerator.Commands
             using var db = new DataContext(cardSet.CardDbPath!);
             {
                 await WriteCardDb(card, config, db);
-                if (card.GenerateScript) await GenerateCardScript(card, config);
+
+                if (card.GenerateScript)
+                    await GenerateCardScript(card, config);
+
                 if (card.GeneratePic)
                 {
                     await GenerateCardImage(card, config);
                     if (card.IsSpellType(SpellTypes.Field))
                         await DrawFieldArtwork(card, config);
-                }
-            }
-
-            if (!config.OverframePath.IsNullOrWhiteSpace())
-            {
-                var overframePath = Path.Combine(config.OverframePath, $"{card.Id}.png");
-                if (card.Template == CardTemplates.Overframe)
-                {
-                    var picPath = Path.Combine(config.ExpansionPath, "pics", $"{card.Id}.png");
-                    await CopyFile(picPath, overframePath);
-                } else if (File.Exists(overframePath))
-                {
-                    File.Delete(overframePath);
                 }
             }
 
@@ -465,7 +455,6 @@ namespace YgoCardGenerator.Commands
         protected async Task GenerateCardImage(CardDataDto card, CardSetConfig config)
         {
             using var surface = SKSurface.Create(new SKImageInfo(config.CardWidth, config.CardHeight));
-            var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
             var canvas = surface.Canvas;
 
             if (card.Template == CardTemplates.Overframe)
@@ -485,6 +474,7 @@ namespace YgoCardGenerator.Commands
                 var destRect = new SKRect(startX, startY, startX + destWidth, startY + destHeight);
                 canvas.DrawImage(artworkImage, destRect, paint);
 
+                var outputFilename = Path.Combine(config.OverframePath!, $"{card.Id}.png");
                 await SaveImage(surface, outputFilename);
             }
             else
@@ -510,6 +500,7 @@ namespace YgoCardGenerator.Commands
                 }
                 if (card.IsLink) await DrawLinkArrow(canvas, card, config);
 
+                var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
                 await SaveImage(surface, outputFilename);
             }
         }
