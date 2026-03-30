@@ -5,8 +5,7 @@ namespace YgoCardGenerator.Types
 {
     public class CardSetConfig
     {
-        internal const string CardIndexFileName = "card.toml";
-        internal const string MarcoFileName = "marco.toml";
+        internal const string MarcoFileName = "_marco.toml";
 
         public CardSetConfig(CardSetDto input)
         {

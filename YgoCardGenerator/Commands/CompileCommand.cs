@@ -50,24 +50,31 @@ namespace YgoCardGenerator.Commands
             foreach (var packPath in cardSet.Packs)
             {
                 var cardPackPath = Path.Combine(cardSet.BasePath, packPath);
-                var listCard = Toml.ToModel(await File.ReadAllTextAsync(Path.Combine(cardPackPath, CardSetConfig.CardIndexFileName)));
-                for (var i = 0; i < listCard.Count; i++)
+                var packFiles = Directory.GetFiles(cardPackPath);
+                foreach (var packFile in packFiles)
                 {
-                    var cardInputOptions = new TomlModelOptions { ConvertPropertyName = (name) => name.ToKebabCase() };
-                    var cardInput = Toml.ToModel<CardInputDto>(Toml.FromModel(listCard.Values.ElementAt(i)), options: cardInputOptions);
-                    cardInput.Key = listCard.Keys.ElementAt(i);
+                    var fileName = Path.GetFileName(packFile);
+                    if (fileName == CardSetConfig.MarcoFileName) continue;
 
-                    var cardData = cardInput.ToCardDataDto(cardPackPath);
-                    cardData.ValidateAndThrow();
-                    if (cards.Any(x => x.Id == cardData.Id))
-                        throw new Exception($"duplicate card {cardData.Id} in {packPath}");
+                    var listCard = Toml.ToModel(await File.ReadAllTextAsync(packFile));
+                    for (var i = 0; i < listCard.Count; i++)
+                    {
+                        var cardInputOptions = new TomlModelOptions { ConvertPropertyName = (name) => name.ToKebabCase() };
+                        var cardInput = Toml.ToModel<CardInputDto>(Toml.FromModel(listCard.Values.ElementAt(i)), options: cardInputOptions);
+                        cardInput.Key = listCard.Keys.ElementAt(i);
 
-                    cardIds.Add(cardData.Id);
-                    if (cardData.CardLimit == null || cardData.CardLimit.Length == 0)
-                        cardData.CardLimit = [CardLimits.Custom];
+                        var cardData = cardInput.ToCardDataDto(cardPackPath);
+                        cardData.ValidateAndThrow();
+                        if (cards.Any(x => x.Id == cardData.Id))
+                            throw new Exception($"duplicate card {cardData.Id} in {packPath}");
 
-                    if (cardSet.SkipCompilePacks.IsNullOrEmpty() || !cardSet.SkipCompilePacks.Any(x => x == packPath))
-                        cards.Enqueue(cardData);
+                        cardIds.Add(cardData.Id);
+                        if (cardData.CardLimit == null || cardData.CardLimit.Length == 0)
+                            cardData.CardLimit = [CardLimits.Custom];
+
+                        if (cardSet.SkipCompilePacks.IsNullOrEmpty() || !cardSet.SkipCompilePacks.Any(x => x == packPath))
+                            cards.Enqueue(cardData);
+                    }
                 }
             }
 

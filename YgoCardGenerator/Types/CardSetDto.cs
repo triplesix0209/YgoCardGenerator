@@ -56,11 +56,11 @@ namespace YgoCardGenerator.Types
                 .Must(field => field == null || field.All(item => !item.IsNullOrWhiteSpace()))
                 .WithMessage("Pack list cannot be empty");
             RuleFor(x => x.Packs)
-                .Must((model, field) => field == null || field.All(item => File.Exists(Path.Combine(model.BasePath!, item, CardSetConfig.CardIndexFileName))))
+                .Must((model, field) => field == null || field.All(item => Directory.Exists(Path.Combine(model.BasePath!, item))))
                 .WithMessage("Pack files (pack.toml) must be existed");
 
             RuleFor(x => x.SkipCompilePacks)
-                .Must((model, field) => field == null || field.All(item => File.Exists(Path.Combine(model.BasePath!, item, CardSetConfig.CardIndexFileName))))
+                .Must((model, field) => field == null || field.All(item => Directory.Exists(Path.Combine(model.BasePath!, item))))
                 .WithMessage("Pack files (pack.toml) must be existed");
         }
     }
