@@ -502,6 +502,9 @@ namespace YgoCardGenerator.Commands
 
                 var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
                 await SaveImage(surface, outputFilename);
+
+                var overframeFilename = Path.Combine(config.OverframePath!, $"{card.Id}");
+                if (File.Exists(overframeFilename)) File.Delete(overframeFilename);
             }
         }
 
