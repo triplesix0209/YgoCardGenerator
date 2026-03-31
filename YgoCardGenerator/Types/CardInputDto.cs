@@ -125,9 +125,6 @@
                 result.Flavor = Flavor?.Trim();
                 result.Effect = Effect?.Trim();
                 result.PendulumEffect = PendulumEffect?.Trim();
-
-                if (result.IsMonsterType(MonsterTypes.Token))
-                    result.GenerateScript = false;
             }
 
             if (result.IsLink)
