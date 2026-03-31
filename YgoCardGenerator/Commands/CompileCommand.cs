@@ -436,13 +436,11 @@ namespace YgoCardGenerator.Commands
             for (var i = 0; i < scripts.Count; i++)
             {
                 if (!regex.IsMatch(scripts[i])) continue;
-                var filePath = Path.Combine(config.BasePath, "include", scripts[i][13..]);
+                var filePath = Path.Combine(Path.GetDirectoryName(card.ScriptPath)!, scripts[i][13..]);
                 if (!File.Exists(filePath)) continue;
 
                 using var reader = new StreamReader(filePath);
-                {
-                    scripts[i] = await reader.ReadToEndAsync();
-                }
+                scripts[i] = await reader.ReadToEndAsync();
             }
 
             using var writer = new StreamWriter(Path.Combine(config.ScriptPath, $"c{card.Id}.lua"), false);
