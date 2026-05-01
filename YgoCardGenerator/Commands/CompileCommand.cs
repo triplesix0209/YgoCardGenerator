@@ -279,22 +279,19 @@ namespace YgoCardGenerator.Commands
             }
 
             data.Level = 0;
-            if (card.IsMonster)
+            if (card.IsMonsterType(MonsterTypes.Link))
+                data.Level = card.LinkRating ?? 0;
+            else
             {
-                if (card.IsMonsterType(MonsterTypes.Link))
-                    data.Level = card.LinkRating ?? 0;
+                var firstMonsterType = card.FirstMonsterPrimaryType;
+                if (firstMonsterType == MonsterTypes.Xyz)
+                    data.Level = card.Rank ?? 0;
                 else
-                {
-                    var firstMonsterType = card.FirstMonsterPrimaryType!.Value;
-                    if (firstMonsterType == MonsterTypes.Xyz)
-                        data.Level = card.Rank ?? 0;
-                    else
-                        data.Level = card.Level ?? 0;
-                }
-
-                if (card.IsMonsterType(MonsterTypes.Pendulum))
-                    data.Level += ((card.LeftScale ?? 0) << 24) + ((card.RightScale ?? 0) << 16);
+                    data.Level = card.Level ?? 0;
             }
+
+            if (card.IsMonsterType(MonsterTypes.Pendulum))
+                data.Level += ((card.LeftScale ?? 0) << 24) + ((card.RightScale ?? 0) << 16);
 
             data.Attribute = 0;
             if (!card.Attribute.IsNullOrEmpty())
@@ -315,16 +312,8 @@ namespace YgoCardGenerator.Commands
                 }
             }
 
-            if (card.IsMonster)
-            {
-                data.Atk = card.Atk ?? -2;
-                data.Def = card.Def ?? -2;
-            }
-            else
-            {
-                data.Atk = -2;
-                data.Def = -2;
-            }
+            data.Atk = card.Atk ?? -2;
+            data.Def = card.Def ?? -2;
 
             if (card.IsLink)
             {

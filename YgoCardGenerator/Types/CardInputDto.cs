@@ -90,6 +90,9 @@
                 GenerateScript = GenerateScript,
             };
 
+            if (result.Id == 44822037)
+            { }
+
             result.ScriptPath = Path.Combine(basePath, "script", $"{result.Key}.lua");
             result.ArtworkPath = Path.Combine(basePath, "artwork", result.Key.ToString());
             result.ArtworkPath += File.Exists(result.ArtworkPath + ".png") ? ".png" : ".jpg";
@@ -103,28 +106,27 @@
             else if (result.IsMonster)
             {
                 result.MonsterType = Type.MatchEnum<MonsterTypes>() ?? new[] { MonsterTypes.Normal };
-                result.Attribute = Attribute.MatchEnum<MonsterAttributes>();
-                result.Race = Race.MatchEnum<MonsterRaces>();
-
-                if (result.IsMonsterType(MonsterTypes.Link))
-                    result.LinkRating = Link ?? Level ?? 0;
-                else
-                {
-                    var firstMonsterType = result.FirstMonsterPrimaryType!.Value;
-                    if (firstMonsterType == MonsterTypes.Xyz)
-                        result.Rank = Rank ?? Level ?? 0;
-                    else
-                        result.Level = Level ?? 0;
-                }
-
-                result.LeftScale = LeftScale ?? Scale;
-                result.RightScale = RightScale ?? Scale;
-
-                result.Atk = !Atk.IsNullOrWhiteSpace() && Atk.Trim() != "?" ? int.Parse(Atk) : null;
-                result.Def = !Def.IsNullOrWhiteSpace() && Def.Trim() != "?" ? int.Parse(Def) : null;
                 result.Flavor = Flavor?.Trim();
                 result.Effect = Effect?.Trim();
                 result.PendulumEffect = PendulumEffect?.Trim();
+            }
+
+            result.Attribute = Attribute.MatchEnum<MonsterAttributes>();
+            result.Race = Race.MatchEnum<MonsterRaces>();
+            result.LeftScale = LeftScale ?? Scale;
+            result.RightScale = RightScale ?? Scale;
+            result.Atk = !Atk.IsNullOrWhiteSpace() && Atk.Trim() != "?" ? int.Parse(Atk) : null;
+            result.Def = !Def.IsNullOrWhiteSpace() && Def.Trim() != "?" ? int.Parse(Def) : null;
+
+            if (result.IsMonsterType(MonsterTypes.Link))
+                result.LinkRating = Link ?? Level ?? 0;
+            else
+            {
+                var firstMonsterType = result.FirstMonsterPrimaryType;
+                if (firstMonsterType == MonsterTypes.Xyz)
+                    result.Rank = Rank ?? Level ?? 0;
+                else
+                    result.Level = Level ?? 0;
             }
 
             if (result.IsLink)
