@@ -148,7 +148,6 @@ namespace YgoCardGenerator.Commands
 
             var sourceFolder = Path.Join(cardSet.ExpansionPath, cardSet.SetName);
             var destinationFile = Path.Join(cardSet.ExpansionPath, $"{cardSet.SetName}.ypk");
-            File.Copy(Path.Combine(sourceFolder, $"{cardSet.SetName}.cdb"), Path.Combine(cardSet.ExpansionPath, $"{cardSet.SetName}.cdb"), true);
             if (File.Exists(destinationFile)) File.Delete(destinationFile);
             ZipFile.CreateFromDirectory(sourceFolder, destinationFile);
 
