@@ -1,9 +1,13 @@
 ﻿namespace YgoCardGenerator.Enums
 {
-    public enum CardLimits
+    public enum MonsterAttributes
     {
-        OCG = 0x1,
-        TCG = 0x2,
-        Custom = 0x4,
+        Earth = 0x1,
+        Water = 0x2,
+        Fire = 0x4,
+        Wind = 0x8,
+        Light = 0x10,
+        Dark = 0x20,
+        Divine = 0x40,
     }
 }
