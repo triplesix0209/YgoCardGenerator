@@ -15,12 +15,13 @@ namespace YgoCardGenerator.Types
             CloseupPath = input.CloseupPath;
             CutinPath = input.CutinPath;
             OverframePath = input.OverframePath;
+            ArtPath = input.ArtPath;
             SetCodes = new Dictionary<string, long>();
             Marcos = new Dictionary<string, string>();
 
             ScriptPath = Path.Combine(ExpansionPath, "script");
-            PicPath = Path.Combine(ExpansionPath, "pics");
-            PicFieldPath = !input.PicFieldPath.IsNullOrWhiteSpace() ? input.PicFieldPath : Path.Combine(PicPath, "field");
+
+            PicFieldPath = input.PicFieldPath;
 
             if (!input.Setcodes.IsNullOrEmpty())
             {
@@ -45,11 +46,13 @@ namespace YgoCardGenerator.Types
 
         public string? OverframePath { get; }
 
+        public string? ArtPath { get; }
+
         public string ScriptPath { get; }
 
-        public string PicPath { get; }
 
-        public string PicFieldPath { get; }
+
+        public string? PicFieldPath { get; }
 
         public int CardWidth => 813;
 

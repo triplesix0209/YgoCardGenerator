@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/YgoCardGenerator/bin/Debug/net9.0/YgoCardGenerator.dll",
+            "args": [
+                "compile",
+                "-set=E:\\Games\\MDPro3\\Custom\\index.toml"
+            ],
+            "cwd": "${workspaceFolder}/YgoCardGenerator",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
