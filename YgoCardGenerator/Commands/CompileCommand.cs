@@ -106,7 +106,7 @@ namespace YgoCardGenerator.Commands
 
             // clear pic
             var unusedPics = Directory.GetFiles(config.PicPath)
-                .Where(filePath => !cardIds.Any(id => filePath == Path.Combine(config.PicPath, $"{id}.png")));
+                .Where(filePath => !cardIds.Any(id => filePath == Path.Combine(config.PicPath, $"{id}.jpg")));
             foreach (var filePath in unusedPics)
                 File.Delete(filePath);
 
@@ -460,7 +460,7 @@ namespace YgoCardGenerator.Commands
                 var destRect = new SKRect(startX, startY, startX + destWidth, startY + destHeight);
                 canvas.DrawImage(artworkImage, destRect, paint);
 
-                var outputFilename = Path.Combine(config.OverframePath!, $"{card.Id}");
+                var outputFilename = Path.Combine(config.OverframePath!, $"{card.Id}.png");
                 await SaveImage(surface, outputFilename);
             }
             else
@@ -486,11 +486,11 @@ namespace YgoCardGenerator.Commands
                 }
                 if (card.IsLink) await DrawLinkArrow(canvas, card, config);
 
-                var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
+                var outputFilename = Path.Combine(config.PicPath, $"{card.Id}.jpg");
                 await SaveImage(surface, outputFilename);
 
-                var overframeFilename = Path.Combine(config.OverframePath!, $"{card.Id}");
-                if (File.Exists(overframeFilename)) File.Delete(overframeFilename);
+                var overframeFilename = !config.OverframePath.IsNullOrWhiteSpace() ? Path.Combine(config.OverframePath, $"{card.Id}.png") : null;
+                if (overframeFilename != null && File.Exists(overframeFilename)) File.Delete(overframeFilename);
             }
         }
 
@@ -958,10 +958,20 @@ namespace YgoCardGenerator.Commands
 
         protected async Task SaveImage(SKSurface surface, string filename)
         {
-            filename = Path.ChangeExtension(filename, "png");
+            var ext = Path.GetExtension(filename).ToLowerInvariant();
+            var format = ext switch
+            {
+                ".png" => SKEncodedImageFormat.Png,
+                ".webp" => SKEncodedImageFormat.Webp,
+                _ => SKEncodedImageFormat.Jpeg
+            };
+
+            if (string.IsNullOrEmpty(ext))
+                filename = Path.ChangeExtension(filename, "jpg");
+
             using var image = surface.Snapshot();
-            using var stream = new MemoryStream(image.Encode(SKEncodedImageFormat.Png, 100).ToArray());
-            using var file = new FileStream(filename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            using var stream = new MemoryStream(image.Encode(format, 100).ToArray());
+            using var file = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
             await stream.CopyToAsync(file);
         }
 
