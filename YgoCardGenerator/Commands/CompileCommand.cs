@@ -84,11 +84,8 @@ namespace YgoCardGenerator.Commands
 
             // create folder
             if (!Directory.Exists(config.ScriptPath)) Directory.CreateDirectory(config.ScriptPath);
-            if (!config.ArtPath.IsNullOrWhiteSpace() && !Directory.Exists(config.ArtPath)) Directory.CreateDirectory(config.ArtPath);
-            if (!config.OverframePath.IsNullOrWhiteSpace() && !Directory.Exists(config.OverframePath)) Directory.CreateDirectory(config.OverframePath);
-            if (!config.CloseupPath.IsNullOrWhiteSpace() && !Directory.Exists(config.CloseupPath)) Directory.CreateDirectory(config.CloseupPath);
-            if (!config.CutinPath.IsNullOrWhiteSpace() && !Directory.Exists(config.CutinPath)) Directory.CreateDirectory(config.CutinPath);
-            if (!config.PicFieldPath.IsNullOrWhiteSpace() && !Directory.Exists(config.PicFieldPath)) Directory.CreateDirectory(config.PicFieldPath);
+            if (!Directory.Exists(config.PicPath)) Directory.CreateDirectory(config.PicPath);
+            if (!Directory.Exists(config.PicFieldPath)) Directory.CreateDirectory(config.PicFieldPath);
 
             // clear card db
             using var db = new DataContext(cardSet.CardDbPath);
@@ -106,6 +103,12 @@ namespace YgoCardGenerator.Commands
                 }
                 await db.SaveChangesAsync();
             }
+
+            // clear pic
+            var unusedPics = Directory.GetFiles(config.PicPath)
+                .Where(filePath => !cardIds.Any(id => filePath == Path.Combine(config.PicPath, $"{id}.png")));
+            foreach (var filePath in unusedPics)
+                File.Delete(filePath);
 
             // clear script
             var unusedScripts = Directory.GetFiles(config.ScriptPath)
@@ -197,7 +200,7 @@ namespace YgoCardGenerator.Commands
                 if (card.GeneratePic)
                 {
                     await GenerateCardImage(card, config);
-                    if (card.IsSpellType(SpellTypes.Field) && !config.PicFieldPath.IsNullOrWhiteSpace())
+                    if (card.IsSpellType(SpellTypes.Field))
                         await DrawFieldArtwork(card, config);
                 }
             }
@@ -437,63 +440,57 @@ namespace YgoCardGenerator.Commands
 
         protected async Task GenerateCardImage(CardDataDto card, CardSetConfig config)
         {
+            using var surface = SKSurface.Create(new SKImageInfo(config.CardWidth, config.CardHeight));
+            var canvas = surface.Canvas;
+
             if (card.Template == CardTemplates.Overframe)
             {
-                if (!config.OverframePath.IsNullOrWhiteSpace())
-                {
-                    using var surface = SKSurface.Create(new SKImageInfo(config.CardWidth, config.CardHeight));
-                    var canvas = surface.Canvas;
+                using var paint = new SKPaint();
+                paint.IsAntialias = true;
+                paint.FilterQuality = SKFilterQuality.High;
 
-                    using var paint = new SKPaint();
-                    paint.IsAntialias = true;
-                    paint.FilterQuality = SKFilterQuality.High;
+                var artworkImage = SKImage.FromEncodedData(await File.ReadAllBytesAsync(card.ArtworkPath!));
 
-                    var artworkImage = SKImage.FromEncodedData(await File.ReadAllBytesAsync(card.ArtworkPath!));
+                var sourceWidth = artworkImage.Width;
+                var sourceHeight = artworkImage.Height;
+                var destWidth = config.CardWidth;
+                var destHeight = sourceHeight * ((float)destWidth / sourceWidth);
+                var startX = 0;
+                var startY = (config.CardHeight - destHeight) / 2.0f;
+                var destRect = new SKRect(startX, startY, startX + destWidth, startY + destHeight);
+                canvas.DrawImage(artworkImage, destRect, paint);
 
-                    var sourceWidth = artworkImage.Width;
-                    var sourceHeight = artworkImage.Height;
-                    var destWidth = config.CardWidth;
-                    var destHeight = sourceHeight * ((float)destWidth / sourceWidth);
-                    var startX = 0;
-                    var startY = (config.CardHeight - destHeight) / 2.0f;
-                    var destRect = new SKRect(startX, startY, startX + destWidth, startY + destHeight);
-                    canvas.DrawImage(artworkImage, destRect, paint);
-
-                    var outputFilename = Path.Combine(config.OverframePath, $"{card.Id}");
-                    await SaveImage(surface, outputFilename);
-                }
-
-                if (!config.ArtPath.IsNullOrWhiteSpace())
-                {
-                    var artFilename = Path.Combine(config.ArtPath, $"{card.Id}.png");
-                    if (File.Exists(artFilename)) File.Delete(artFilename);
-                }
+                var outputFilename = Path.Combine(config.OverframePath!, $"{card.Id}");
+                await SaveImage(surface, outputFilename);
             }
             else
             {
-                if (!config.ArtPath.IsNullOrWhiteSpace())
+                await DrawCardType(canvas, card, config);
+                await DrawCardArtwork(canvas, card, config);
+                await DrawCardFrame(canvas, card, config);
+                await DrawCardName(canvas, card, config);
+                if (card.IsSpellTrap)
                 {
-                    var artFilename = Path.Combine(config.ArtPath, $"{card.Id}.png");
-                    if (Path.GetExtension(card.ArtworkPath!).Equals(".png", StringComparison.OrdinalIgnoreCase))
-                    {
-                        await CopyFile(card.ArtworkPath!, artFilename);
-                    }
-                    else
-                    {
-                        using var bitmap = SKBitmap.Decode(card.ArtworkPath!);
-                        using var image = SKImage.FromBitmap(bitmap);
-                        using var stream = new MemoryStream(image.Encode(SKEncodedImageFormat.Png, 100).ToArray());
-                        using var file = new FileStream(artFilename, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                        file.SetLength(0);
-                        await stream.CopyToAsync(file);
-                    }
+                    await DrawSpellTrapType(canvas, card, config);
+                    await DrawSpellTrapEffect(canvas, card, config);
                 }
+                else if (card.IsMonster)
+                {
+                    await DrawMonsterAttribute(canvas, card, config);
+                    await DrawMonsterLevelRankLink(canvas, card, config);
+                    await DrawMonsterPendulumScale(canvas, card, config);
+                    await DrawMonsterRace(canvas, card, config);
+                    await DrawMonsterAtkDef(canvas, card, config);
+                    await DrawMonsterEffect(canvas, card, config);
+                    await DrawMonsterPendulumEffect(canvas, card, config);
+                }
+                if (card.IsLink) await DrawLinkArrow(canvas, card, config);
 
-                if (!config.OverframePath.IsNullOrWhiteSpace())
-                {
-                    var overframeFilename = Path.Combine(config.OverframePath, $"{card.Id}.png");
-                    if (File.Exists(overframeFilename)) File.Delete(overframeFilename);
-                }
+                var outputFilename = Path.Combine(config.PicPath, $"{card.Id}");
+                await SaveImage(surface, outputFilename);
+
+                var overframeFilename = Path.Combine(config.OverframePath!, $"{card.Id}");
+                if (File.Exists(overframeFilename)) File.Delete(overframeFilename);
             }
         }
 
@@ -948,7 +945,7 @@ namespace YgoCardGenerator.Commands
             using var paint = new SKPaint();
             paint.FilterQuality = SKFilterQuality.High;
             paint.IsAntialias = true;
-            var filename = Path.Combine(config.PicFieldPath!, $"{card.Id}.png");
+            var filename = Path.Combine(config.PicFieldPath, $"{card.Id}.png");
 
             using var sourceBitmap = SKBitmap.Decode(await File.ReadAllBytesAsync(card.ArtworkPath!));
             using var scaledBitmap = sourceBitmap.Resize(new SKImageInfo(Math.Min(512, sourceBitmap.Width), Math.Min(512, sourceBitmap.Height)), SKFilterQuality.High);
